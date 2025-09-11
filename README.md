@@ -12,7 +12,74 @@
 
 （非常简陋的界面）感谢Claude     :   )
 
-## 项目结构
+
+
+## 安装步骤
+
+### 1. 克隆项目
+
+```bash
+git clone git@github.com:e-zz/MixTex-OCR-WebRebuild.git
+cd MixTex-OCR-WebRebuild
+```
+
+### 2. 安装后端依赖
+
+```bash
+cd webapi
+pip install -r requirements.txt
+```
+
+### 3. 安装前端依赖
+
+```bash
+cd ../web-frontend
+npm install
+```
+
+## 运行项目
+
+### 1. 启动
+可以直接运行 `.run.sh` 启动。
+
+成功运行后，默认情况下前端将使用 http://localhost:3000 端口，后端API将在 http://localhost:8000 提供服务。
+<details>
+    <summary>另外，也可手动运行如下</summary>
+
+
+> 启动后端服务
+```bash
+cd webapi
+uvicorn app:app --host 127.0.0.1 --port 8000 --reload
+```
+>
+> 前端开发服务器
+> 
+```bash
+cd ../web-frontend
+npm run dev
+```
+> 提示：当进程未正常关闭导致端口占用，再次启动时，可能无法正常运行。因此建议使用 `.run.sh` 脚本启动，结束运行请通过网页右上角关闭按钮。
+
+</details>
+
+
+
+
+### 2. 模型下载
+点击网页右上角的`下载并设置模型`按钮，等待下载完成即可。若模型更新，再次点击下载可自动覆盖。
+
+
+> 或者：手动前往 https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest 下载解压，并将 `onxx` 文件夹内容，复制到项目`model`文件夹内。
+
+
+## TODO
+- [ ] 输出为 `Typst`
+
+
+## 开发
+
+### 项目结构
 
 ```
 ├── model/                # 模型文件目录
@@ -28,8 +95,6 @@
     ├── app.py                   # FastAPI应用
     └── ...                      # 其他后端文件
 ```
-
-## 环境要求
 
 ### 后端环境
 
@@ -49,61 +114,7 @@
 - Element Plus
 - Axios
 
-## 安装步骤
-
-### 1. 克隆项目
-
-```bash
-git clone <项目仓库URL>
-cd web-ocr-math
-```
-
-### 2. 安装后端依赖
-
-```bash
-cd webapi
-pip install -r requirements.txt
-```
-
-### 3. 安装前端依赖
-
-```bash
-cd ../web-frontend
-npm install
-```
-
-### 4. 准备模型文件
-
-Model文件我以压缩包的形式放到了Releases下面。
-
-确保在`model`目录中包含以下文件：
-- encoder_model.onnx
-- decoder_model_merged.onnx
-- tokenizer.json
-- vocab.json
-- 其他必要的模型配置文件
-
-## 运行项目
-
-### 1. 启动后端服务
-
-```bash
-cd webapi
-uvicorn app:app --host 127.0.0.1 --port 8000 --reload
-```
-
-### 2. 启动前端开发服务器
-
-```bash
-cd ../web-frontend
-npm run dev
-```
-
-前端将在 http://localhost:3000 启动，后端API将在 http://localhost:8000 提供服务。
-
-
-
-## API接口说明
+### API接口说明
 
 - `GET /`: API健康检查
 - `GET /health`: 模型加载状态检查
@@ -115,11 +126,7 @@ npm run dev
 - `POST /reload_model`: 重新加载模型
 
 
+## 致谢
 
-## 补充
-
-1. 可能存在部分BUG没有测试出来，如果存在问题还请提个Issue
-
-2. 大概率不会再修改代码了，~~凑合用~~
-
-3. 如果有任何不严谨的地方，请联系我：hopeace@protonmail.com
+- [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
+- [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
