@@ -273,7 +273,7 @@ def base64_to_image(base64_string):
         return None
 
 
-def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=False):
+def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=False, use_typst=False):
     """执行LaTeX推理"""
     if model is None:
         return "模型未加载", False
@@ -360,6 +360,15 @@ def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=Fal
 
         if use_dollars:
             result = result.replace("\\(", "$").replace("\\)", "$")
+            
+        if use_typst:
+            try:
+                result = convert_latex_math(result)
+                logger.info(result)
+            except Exception as e:
+                # TODO text and equation mixed handling
+                logger.error(f"Typst conversion failed: {e}")
+                return f"Typst conversion failed: {str(e)}", False
 
         return result, True
 
@@ -429,6 +438,7 @@ async def predict(
     file: UploadFile = File(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """图片转数学公式接口"""
     if not model:
@@ -445,7 +455,7 @@ async def predict(
 
         # 推理
         result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
+            img, use_dollars=use_dollars, convert_align=convert_align, use_typst=use_typst
         )
 
         if success:
@@ -463,6 +473,7 @@ async def predict_base64(
     image_data: str = Form(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """基于base64的图片转数学公式接口"""
     if not model:
@@ -476,7 +487,7 @@ async def predict_base64(
 
         # 推理
         result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
+            img, use_dollars=use_dollars, convert_align=convert_align, use_typst=use_typst
         )
 
         if success:
@@ -494,6 +505,7 @@ async def predict_clipboard(
     image_data: str = Form(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """处理剪贴板图片粘贴的接口"""
     if not model:
@@ -507,7 +519,7 @@ async def predict_clipboard(
 
         # 推理
         result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
+            img, use_dollars=use_dollars, convert_align=convert_align, use_typst=use_typst
         )
 
         if success:
