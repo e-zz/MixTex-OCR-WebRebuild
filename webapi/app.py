@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -9,6 +9,14 @@ from transformers import RobertaTokenizer, ViTImageProcessor
 import onnxruntime as ort
 import base64
 import logging
+import sys
+import subprocess
+import shutil
+import requests
+import zipfile
+from pathlib import Path
+from tqdm import tqdm
+from mitex_python import convert_latex_math
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +55,117 @@ def find_valid_model_path():
                 return path
     return None
 
+
+def get_latest_release_url():
+    """Get the URL of the latest MixTeX model release"""
+    fallback_url = "https://github.com/RQLuo/MixTeX-Latex-OCR/releases/tag/MixTex-B"
+    
+    try:
+        # Get latest release info from GitHub API
+        logger.info("Fetching latest release information...")
+        api_url = "https://api.github.com/repos/RQLuo/MixTeX-Latex-OCR/releases/latest"
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        release_data = response.json()
+        
+        # Find the MixTex-B.zip asset
+        for asset in release_data['assets']:
+            if asset['name'].lower() == 'mixtex-b.zip':
+                logger.info(f"Found latest model at: {asset['browser_download_url']}")
+                return asset['browser_download_url']
+        
+        logger.warning(f"MixTex-B.zip not found in latest release, using fallback URL")
+        return fallback_url
+    except Exception as e:
+        logger.warning(f"Error fetching release info: {str(e)}, using fallback URL")
+        return fallback_url
+
+
+def download_model_file(url, zip_path):
+    """Download model file with progress tracking"""
+    logger.info(f"Downloading model from: {url}")
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 1024  # 1 Kibibyte
+    
+    with open(zip_path, 'wb') as f, tqdm(
+            desc="Downloading MixTeX model",
+            total=total_size,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as bar:
+        for data in response.iter_content(block_size):
+            size = f.write(data)
+            bar.update(size)
+
+
+def download_and_setup_model():
+    """Download MixTeX model from GitHub release, extract and set up"""
+    # Set paths
+    base_dir = Path(__file__).resolve().parent.parent
+    model_dir = base_dir / "model"
+    temp_dir = base_dir / "temp"
+    unzip_dir = temp_dir / "MixTex-B"
+    unzip_model_dir = unzip_dir / "onnx"
+    
+    # Create directories if they don't exist
+    model_dir.mkdir(exist_ok=True)
+    temp_dir.mkdir(exist_ok=True)
+    unzip_dir.mkdir(exist_ok=True)
+    
+    # Download file path
+    zip_path = temp_dir / "MixTex-B.zip"
+    
+    try:
+        # Get the latest release URL
+        model_url = get_latest_release_url()
+        
+        # Download the model
+        download_model_file(model_url, zip_path)
+        
+        # Extract the model
+        logger.info("Extracting model file...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(unzip_dir)
+        
+        # Move files to model directory
+        logger.info("Setting up model files...")
+        
+        # Remove existing model directory if it exists
+        if model_dir.exists():
+            shutil.rmtree(model_dir)
+        
+        # Copy the entire extracted directory to the model directory
+        shutil.copytree(unzip_model_dir, model_dir)
+        logger.info(f"Copied entire model directory from {unzip_model_dir} to {model_dir}")
+        
+        # Clean up temporary files
+        logger.info("Cleaning up...")
+        if zip_path.exists():
+            os.remove(zip_path)
+        
+        try:
+            shutil.rmtree(unzip_dir)
+        except Exception as e:
+            logger.warning(f"Could not remove temporary files: {e}")
+        
+        # Reload the model
+        load_model()
+        
+        return {
+            "status": "success", 
+            "message": "Model downloaded and set up successfully",
+            "source": model_url
+        }
+    except Exception as e:
+        logger.error(f"Model download and setup failed: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Failed to download and setup model: {str(e)}"
+        }
 
 def load_model():
     """加载ONNX模型"""
@@ -255,6 +374,36 @@ async def startup_event():
     if not load_model():
         logger.error("Failed to load model during startup")
 
+@app.post("/shutdown")
+async def shutdown():
+    """Shutdown the application completely, including parent Uvicorn process"""
+    try:
+        logger.info("Application shutdown requested")
+        
+        # Get the current process
+        current_process = psutil.Process(os.getpid())
+        
+        # Find the parent Uvicorn process
+        parent = current_process.parent()
+        
+        if parent and "uvicorn" in parent.name().lower():
+            logger.info(f"Terminating parent Uvicorn process (PID: {parent.pid})")
+            # Kill the parent process and all its children
+            parent.terminate()
+            
+            # Return success before the process is killed
+            return {"success": True, "message": "Application is shutting down completely"}
+        
+        # If we can't find the parent, at least try to kill our own process
+        logger.info("Parent Uvicorn process not found, terminating current process")
+        # Use SIGTERM for cleaner shutdown
+        os.kill(os.getpid(), signal.SIGTERM)
+        
+        return {"success": True, "message": "Application is shutting down"}
+    except Exception as e:
+        logger.error(f"Shutdown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Shutdown failed: {str(e)}")
+
 
 @app.get("/")
 async def root():
@@ -266,6 +415,14 @@ async def health_check():
     """健康检查接口"""
     return {"status": "healthy", "model_loaded": model is not None}
 
+@app.post("/download_model")
+async def download_model():
+    """Download and setup the model files from GitHub release"""
+    try:
+        result = download_and_setup_model()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict")
 async def predict(
