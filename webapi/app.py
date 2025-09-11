@@ -19,8 +19,24 @@ from tqdm import tqdm
 from mitex_python import convert_latex_math
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+# Create logs directory if it doesn't exist
+log_dir = Path(__file__).resolve().parent.parent / "logs"
+log_dir.mkdir(exist_ok=True)
+log_file = log_dir / "mixtex_api.log"
+
+# Configure logging to both file and console
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
+
 
 # 模型路径配置
 MODEL_PATHS = [os.path.abspath("../model")]
@@ -273,7 +289,7 @@ def base64_to_image(base64_string):
         return None
 
 
-def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=False):
+def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=False, use_typst=False):
     """执行LaTeX推理"""
     if model is None:
         return "模型未加载", False
@@ -360,6 +376,15 @@ def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=Fal
 
         if use_dollars:
             result = result.replace("\\(", "$").replace("\\)", "$")
+            
+        if use_typst:
+            try:
+                result = convert_latex_math(result)
+                logger.info(result)
+            except Exception as e:
+                # TODO text and equation mixed handling
+                logger.error(f"Typst conversion failed: {e}")
+                return f"Typst conversion failed: {str(e)}", False
 
         return result, True
 
@@ -424,38 +449,57 @@ async def download_model():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Common prediction function to handle all three endpoints
+async def process_prediction(image, use_dollars=False, convert_align=False, use_typst=False, source="unknown"):
+    """Common function for processing predictions from different sources"""
+    if not model:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    try:
+        if image is None:
+            raise HTTPException(status_code=400, detail=f"Invalid {source} image data")
+
+        # Run inference
+        result, success = mixtex_inference(
+            image, use_dollars=use_dollars, convert_align=convert_align, use_typst=use_typst
+        )
+
+        if success:
+            return {"success": True, "latex": result, "message": f"{source} 识别成功"}
+        else:
+            raise HTTPException(status_code=500, detail=result)
+
+    except HTTPException:
+        # Re-raise HTTP exceptions without wrapping
+        raise
+    except Exception as e:
+        logger.error(f"{source} prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"{source} prediction failed: {str(e)}")
+
+
 @app.post("/predict")
 async def predict(
     file: UploadFile = File(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """图片转数学公式接口"""
-    if not model:
-        raise HTTPException(status_code=500, detail="Model not loaded")
-
     # 检查文件类型
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
 
-    try:
-        # 读取图片
-        contents = await file.read()
-        img = Image.open(io.BytesIO(contents)).convert("RGB")
-
-        # 推理
-        result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
-        )
-
-        if success:
-            return {"success": True, "latex": result, "message": "识别成功"}
-        else:
-            raise HTTPException(status_code=500, detail=result)
-
-    except Exception as e:
-        logger.error(f"Prediction error: {e}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    # 读取图片
+    contents = await file.read()
+    img = Image.open(io.BytesIO(contents)).convert("RGB")
+    
+    return await process_prediction(
+        image=img,
+        use_dollars=use_dollars,
+        convert_align=convert_align,
+        use_typst=use_typst,
+        source="文件上传"
+    )
 
 
 @app.post("/predict_base64")
@@ -463,30 +507,19 @@ async def predict_base64(
     image_data: str = Form(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """基于base64的图片转数学公式接口"""
-    if not model:
-        raise HTTPException(status_code=500, detail="Model not loaded")
-
-    try:
-        # 转换base64为图片
-        img = base64_to_image(image_data)
-        if img is None:
-            raise HTTPException(status_code=400, detail="Invalid image data")
-
-        # 推理
-        result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
-        )
-
-        if success:
-            return {"success": True, "latex": result, "message": "识别成功"}
-        else:
-            raise HTTPException(status_code=500, detail=result)
-
-    except Exception as e:
-        logger.error(f"Base64 prediction error: {e}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    # 转换base64为图片
+    img = base64_to_image(image_data)
+    
+    return await process_prediction(
+        image=img,
+        use_dollars=use_dollars,
+        convert_align=convert_align,
+        use_typst=use_typst,
+        source="Base64图片"
+    )
 
 
 @app.post("/predict_clipboard")
@@ -494,32 +527,19 @@ async def predict_clipboard(
     image_data: str = Form(...),
     use_dollars: bool = Form(False),
     convert_align: bool = Form(False),
+    use_typst: bool = Form(False),
 ):
     """处理剪贴板图片粘贴的接口"""
-    if not model:
-        raise HTTPException(status_code=500, detail="Model not loaded")
-
-    try:
-        # 转换base64为图片
-        img = base64_to_image(image_data)
-        if img is None:
-            raise HTTPException(status_code=400, detail="Invalid clipboard image data")
-
-        # 推理
-        result, success = mixtex_inference(
-            img, use_dollars=use_dollars, convert_align=convert_align
-        )
-
-        if success:
-            return {"success": True, "latex": result, "message": "剪贴板图片识别成功"}
-        else:
-            raise HTTPException(status_code=500, detail=result)
-
-    except Exception as e:
-        logger.error(f"Clipboard prediction error: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Clipboard prediction failed: {str(e)}"
-        )
+    # 转换base64为图片
+    img = base64_to_image(image_data)
+    
+    return await process_prediction(
+        image=img,
+        use_dollars=use_dollars,
+        convert_align=convert_align,
+        use_typst=use_typst,
+        source="剪贴板"
+    )
 
 
 @app.post("/feedback")

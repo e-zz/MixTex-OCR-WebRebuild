@@ -23,11 +23,14 @@
     <div class="format-settings">
       <el-divider>输出格式设置</el-divider>
       <el-row :gutter="20">
-        <el-col :span="12">
+        <el-col :span="6">
           <el-checkbox v-model="useDollars">使用 $ 符号包围行内公式</el-checkbox>
         </el-col>
-        <el-col :span="12">
+        <el-col :span="7">
           <el-checkbox v-model="convertAlign">转换align环境为单行公式 $$</el-checkbox>
+        </el-col>
+        <el-col :span="6">
+          <el-checkbox v-model="useTypst">输出为 Typst</el-checkbox>
         </el-col>
       </el-row>
     </div>
@@ -56,6 +59,7 @@ const isProcessing = ref(false)
 const isDragOver = ref(false)
 const loadingProgress = ref(0)
 const useDollars = ref(false)
+const useTypst = ref(true)
 const convertAlign = ref(false)
 const currentFile = ref(null)
 
@@ -171,6 +175,7 @@ const recognizeImage = async (file) => {
     formData.append('image_data', base64Data)
     formData.append('use_dollars', useDollars.value)
     formData.append('convert_align', convertAlign.value)
+    formData.append('use_typst', useTypst.value)
 
     const response = await axios.post(`${API_BASE}/predict_clipboard`, formData, {
       headers: {
