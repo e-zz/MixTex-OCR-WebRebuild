@@ -10,6 +10,27 @@
           <div class="header-left">
             <h1>MixTeX OCR</h1>
           </div>
+          <div class="header-right">
+            <el-button 
+              type="primary" 
+              size="small" 
+              @click="downloadAndSetupModel" 
+              :loading="isDownloading"
+            >
+              <el-icon><Download /></el-icon>
+              下载并设置模型
+            </el-button>
+            
+            <!-- Add the close/restart dropdown here -->
+            <el-button 
+              type="danger" 
+              size="small"
+              @click="handleShutdown"
+            >
+              <el-icon><Close /></el-icon>
+              关闭应用
+            </el-button>
+          </div>
         </div>
       </el-header>
 
@@ -116,8 +137,15 @@
 
 <script setup>
 import { ref, computed, provide } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Upload, Document, CopyDocument, Close } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  Upload, 
+  Document, 
+  CopyDocument, 
+  Close, 
+  Download 
+  // Remove Refresh since we're not using it anymore
+} from '@element-plus/icons-vue'
 import ClipboardUpload from './components/ClipboardUpload.vue'
 import GlobalLoading from './components/GlobalLoading.vue'
 import AboutPopup from './components/AboutPopup.vue'
@@ -130,6 +158,88 @@ const aboutPopupRef = ref(null)
 
 // 计算属性
 const hasCurrentImage = computed(() => currentResult.value !== null)
+
+// Add new state for download button
+const isDownloading = ref(false)
+
+// Model download and setup function
+const downloadAndSetupModel = async () => {
+  try {
+    // Confirm with user before proceeding
+    await ElMessageBox.confirm(
+      '将自动从GitHub下载MixTeX模型文件并设置。此过程可能需要几分钟时间，取决于您的网络速度。',
+      '下载模型',
+      {
+        confirmButtonText: '确认下载',
+        cancelButtonText: '取消',
+        type: 'info'
+      }
+    )
+    
+    isDownloading.value = true
+    showGlobalLoading('正在下载模型文件...')
+    
+    // Call backend endpoint to handle download, unzip and setup
+    const response = await fetch('http://localhost:8000/download_model', {
+      method: 'POST'
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.detail || '下载模型失败')
+    }
+    
+    const result = await response.json()
+    hideGlobalLoading()
+    isDownloading.value = false
+    
+    ElMessage.success('模型下载并设置成功！')
+  } catch (error) {
+    hideGlobalLoading()
+    isDownloading.value = false
+    
+    // Don't show error if user cancelled
+    if (error.toString().includes('cancel')) return
+    
+    ElMessage.error(`模型下载失败: ${error.message || error}`)
+  }
+}
+
+const handleShutdown = async () => {
+  try {
+    // Confirm before shutting down
+    await ElMessageBox.confirm(
+      '确定要关闭应用吗？',
+      '关闭应用',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    showGlobalLoading('正在关闭应用...')
+    
+    // Call shutdown API
+    await fetch('http://localhost:8000/shutdown', {
+      method: 'POST'
+    })
+    
+    // The application should close itself, but just in case:
+    ElMessage.success('应用已关闭')
+    setTimeout(() => {
+      window.close()
+    }, 1000)
+    
+  } catch (error) {
+    hideGlobalLoading()
+    
+    // Don't show error if user cancelled
+    if (error.toString().includes('cancel')) return
+    
+    ElMessage.error(`操作失败: ${error.message || error}`)
+  }
+}
 
 // 方法
 const copyToClipboard = async (text) => {
@@ -247,6 +357,13 @@ provide('hideGlobalLoading', hideGlobalLoading)
   justify-content: space-between;
   align-items: center;
   padding: 20px 30px;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+  /* Ensure buttons in header align properly */
+  align-items: center;
 }
 
 .header-left h1 {
