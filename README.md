@@ -12,6 +12,12 @@ Frontend interface screenshot:
 
 (Very rudimentary interface) Thanks Claude     :   )
 
+## Features
+
+- **OCR Recognition**: Extract LaTeX formulas from images containing mixed text and mathematical expressions
+- **Typst Support**: Convert LaTeX output to Typst format for modern document typesetting
+
+
 ## Installation Steps
 
 ### 1. Clone the Project
@@ -27,7 +33,7 @@ cd MixTex-OCR-WebRebuild
 pip install -r requirements.txt
 ```
 
-To get Typst output, ensure `pandoc` is installed and accessible in your environment. For example, verify by running
+To get Typst output, ensure `pandoc` is installed and accessible in your environment. You can follow [the Pandoc installation guide](https://pandoc.org/installing.html) and verify by running
 
 ```
 pandoc -v
@@ -37,7 +43,7 @@ pandoc -v
 ### 3. Install Frontend Dependencies
 
 ```bash
-cd ../web-frontend
+cd web-frontend
 npm install
 ```
 
@@ -70,9 +76,6 @@ npm run dev
 Click the `Download and Setup Model` button in the top-right corner of the webpage and wait for the download to complete. If the model updates, clicking download again will automatically overwrite.
 
 > Alternatively: Manually go to https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest to download and extract, then copy the contents of the `onnx` folder to the project's model folder.
-
-## TODO
-- [ ] Output as `Typst`
 
 ## Development
 
@@ -126,4 +129,4 @@ Click the `Download and Setup Model` button in the top-right corner of the webpa
 
 - [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
 - [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
-- [mitex-rs](https://github.com/mitex-rs/mitex)
+- [Panadoc](https://github.com/jgm/pandoc) and [pypandoc](https://github.com/boisgera/pandoc)

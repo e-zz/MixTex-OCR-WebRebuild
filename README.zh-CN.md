@@ -12,6 +12,11 @@
 （非常简陋的界面）感谢Claude     :   )
 
 
+## 功能特点
+
+- **OCR 识别**：从包含混合文本和数学表达式的图像中提取 LaTeX 公式
+- **Typst 支持**：将 LaTeX 输出转换为 Typst 格式，支持现代文档排版
+
 
 ## 安装步骤
 
@@ -28,7 +33,7 @@ cd MixTex-OCR-WebRebuild
 pip install -r requirements.txt
 ```
 
-要获得 Typst 输出，请确保环境中已安装 `pandoc` 并可正常访问。例如，可通过运行以下命令进行验证：
+要获得 Typst 输出，请确保环境中已安装 `pandoc` 并可正常访问。您可以按照 [Pandoc 安装指南](https://pandoc.org/installing.html) 进行安装，并通过运行以下命令进行验证
 
 ```
 pandoc -v
@@ -38,7 +43,7 @@ pandoc -v
 ### 3. 安装前端依赖
 若未安装 npm, 需要 
 ```bash
-cd ../web-frontend
+cd web-frontend
 npm install
 ```
 
@@ -77,8 +82,6 @@ npm run dev
 > 或者：手动前往 https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest 下载解压，并将 `onxx` 文件夹内容，复制到项目`model`文件夹内。
 
 
-## TODO
-- [ ] 输出为 `Typst`
 
 
 ## 开发
@@ -134,4 +137,4 @@ npm run dev
 
 - [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
 - [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
-- [mitex-rs](https://github.com/mitex-rs/mitex)
+- [Panadoc](https://github.com/jgm/pandoc) 和 [pypandoc](https://github.com/boisgera/pandoc)

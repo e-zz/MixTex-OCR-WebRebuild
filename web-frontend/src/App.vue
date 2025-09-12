@@ -93,7 +93,7 @@
 
                   <!-- 结果显示 -->
                   <div class="result-latex-section">
-                    <h4>{{ $t('messages.recognitionNoResult') }}</h4>
+                    <h4>{{ $t('messages.recognitionResult') }}</h4>
                     <el-input v-model="currentResult.latex" type="textarea" :rows="6" readonly class="latex-input" />
                     <div class="result-actions">
                       <el-button type="primary" size="small" @click="copyToClipboard(currentResult.latex)">
