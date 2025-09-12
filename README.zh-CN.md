@@ -137,4 +137,4 @@ npm run dev
 
 - [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
 - [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
-- [Panadoc](https://github.com/jgm/pandoc) 和 [pypandoc](https://github.com/boisgera/pandoc)
+- [Pandoc](https://github.com/jgm/pandoc) 和 [pypandoc](https://github.com/boisgera/pandoc)

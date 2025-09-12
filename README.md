@@ -55,7 +55,7 @@ You can launch the application by running the `start.sh` script, or use `python 
 After successful startup, by default the frontend will use http://localhost:3000 port, and the backend API will be available at http://localhost:8000.
 
 <details>
-    <summary>Alternatively, you can manually run the following</summary>
+    <summary>Alternatively, you can manually run the following commands</summary>
 
 > Start backend service
 ```bash
@@ -129,4 +129,4 @@ Click the `Download and Setup Model` button in the top-right corner of the webpa
 
 - [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
 - [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
-- [Panadoc](https://github.com/jgm/pandoc) and [pypandoc](https://github.com/boisgera/pandoc)
+- [Pandoc](https://github.com/jgm/pandoc) and [pypandoc](https://github.com/boisgera/pandoc)
