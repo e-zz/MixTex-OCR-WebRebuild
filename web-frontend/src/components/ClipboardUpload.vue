@@ -12,25 +12,25 @@
       <div class="clipboard-content">
         <el-icon class="clipboard-icon"><DocumentCopy /></el-icon>
         <div class="clipboard-text">
-          <h3>📋 剪贴板图片识别</h3>
-          <p>按 Ctrl+V 粘贴图片</p>
-          <p>或者直接拖拽图片到此区域</p>
+          <h3>{{ $t('clipboard.title') }}</h3>
+          <p>{{ $t('clipboard.pasteHint') }}</p>
+          <p>{{ $t('clipboard.dragHint') }}</p>
         </div>
       </div>
     </div>
 
     <!-- 格式设置 -->
     <div class="format-settings">
-      <el-divider>输出格式设置</el-divider>
+      <el-divider>{{ $t('clipboard.formatSettings') }}</el-divider>
       <el-row :gutter="20">
-        <el-col :span="6">
-          <el-checkbox v-model="useDollars">使用 $ 符号包围行内公式</el-checkbox>
+        <el-col :span="12">
+          <el-checkbox v-model="useDollars">{{ $t('clipboard.useDollars') }}</el-checkbox>
         </el-col>
-        <el-col :span="7">
-          <el-checkbox v-model="convertAlign">转换align环境为单行公式 $$</el-checkbox>
+        <el-col :span="12">
+          <el-checkbox v-model="convertAlign">{{ $t('clipboard.convertAlign') }}</el-checkbox>
         </el-col>
-        <el-col :span="6">
-          <el-checkbox v-model="useTypst">输出为 Typst</el-checkbox>
+        <el-col :span="12">
+          <el-checkbox v-model="useTypst">{{ $t('clipboard.useTypst') }}</el-checkbox>
         </el-col>
       </el-row>
     </div>
@@ -49,6 +49,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DocumentCopy } from '@element-plus/icons-vue'
 import axios from 'axios'
@@ -107,12 +108,14 @@ const handleDrop = async (event) => {
   }
 }
 
+const { t } = useI18n()
+
 // 处理图片
 const processImage = async (file) => {
   try {
     // 验证文件类型
     if (!file.type.startsWith('image/')) {
-      ElMessage.error('请选择图片文件')
+      ElMessage.error(t('messages.invalidImageFile'))
       return
     }
 
@@ -130,7 +133,7 @@ const processImage = async (file) => {
     await recognizeImage(file)
     
   } catch (error) {
-    ElMessage.error('处理图片时出错: ' + error.message)
+    ElMessage.error(t('messages.processingError') + error.message)
   }
 }
 
@@ -147,7 +150,7 @@ const fileToBase64 = (file) => {
 // 识别图片
 const recognizeImage = async (file) => {
   if (!file) {
-    ElMessage.error('请先选择图片')
+    ElMessage.error(t('messages.pleaseSelectImage'))
     return
   }
 
@@ -156,7 +159,7 @@ const recognizeImage = async (file) => {
   
   // 显示全局加载状态
   if (showGlobalLoading) {
-    showGlobalLoading('正在识别图片中的数学公式...')
+    showGlobalLoading(t('messages.recognizing'))
   }
 
   try {
@@ -216,7 +219,7 @@ const reRecognize = async () => {
   if (currentFile.value) {
     await recognizeImage(currentFile.value)
   } else {
-    ElMessage.warning('没有可重新识别的图片')
+    ElMessage.warning(t('messages.noImageToReRecognize'))
   }
 }
 

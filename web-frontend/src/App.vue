@@ -2,7 +2,7 @@
   <div id="app">
     <!-- 全局加载状态 -->
     <GlobalLoading ref="globalLoadingRef" />
-    
+
     <el-container class="main-container">
       <!-- 顶部标题栏 -->
       <el-header class="app-header">
@@ -11,6 +11,7 @@
             <h1>MixTeX OCR</h1>
           </div>
           <div class="header-right">
+
             <el-button 
               type="primary" 
               size="small" 
@@ -18,18 +19,21 @@
               :loading="isDownloading"
             >
               <el-icon><Download /></el-icon>
-              下载并设置模型
+              {{ $t('header.downloadModel') }}
             </el-button>
             
-            <!-- Add the close/restart dropdown here -->
-            <el-button 
-              type="danger" 
-              size="small"
-              @click="handleShutdown"
-            >
-              <el-icon><Close /></el-icon>
-              关闭应用
-            </el-button>
+            <div class="lang-toggle-wrapper">
+              <!-- <span class="lang-label">EN</span> -->
+              <el-switch
+                v-model="languageSwitch"
+                @change="onLanguageSwitchChange"
+                class="lang-switch"
+                inline-prompt
+                active-text="中文"
+                inactive-text="EN"
+              />
+              <span class="lang-label">{{ $t("header.alternativeLanguage") }}</span>
+            </div>
           </div>
         </div>
       </el-header>
@@ -45,7 +49,7 @@
                   <el-icon>
                     <Upload />
                   </el-icon>
-                  <span>图片识别</span>
+                  <span>{{ $t('clipboard.title') }}</span>
                 </div>
               </template>
 
@@ -64,7 +68,7 @@
                   <el-icon>
                     <Document />
                   </el-icon>
-                  <span>识别结果</span>
+                  <span>{{ $t('messages.recognitionResult') }}</span>
 
                 </div>
               </template>
@@ -75,36 +79,36 @@
                   <el-icon class="empty-icon">
                     <Document />
                   </el-icon>
-                  <p>暂无识别结果</p>
-                  <p class="empty-tip">请在左侧上传或粘贴图片进行识别</p>
+                  <p>{{ $t('messages.recognitionNoResult') }}</p>
+                  <p class="empty-tip">{{ $t('messages.uploadReminder') }}</p>
                 </div>
 
                 <div v-else class="current-result">
                   <!-- 图片显示 -->
                   <div class="result-image-section">
-                    <h4>识别图片</h4>
-                    <img :src="currentResult.imageUrl" alt="识别图片" class="result-image" />
+                    <h4>{{ $t('messages.recognizeImage') }}</h4>
+                    <img :src="currentResult.imageUrl" alt="{{ $t('messages.recognizeImage') }}" class="result-image" />
                   </div>
 
                   <!-- 结果显示 -->
                   <div class="result-latex-section">
-                    <h4>识别结果</h4>
+                    <h4>{{ $t('messages.recognitionNoResult') }}</h4>
                     <el-input v-model="currentResult.latex" type="textarea" :rows="6" readonly class="latex-input" />
                     <div class="result-actions">
                       <el-button type="primary" size="small" @click="copyToClipboard(currentResult.latex)">
                         <el-icon>
                           <CopyDocument />
                         </el-icon>
-                        复制结果
+                        {{ $t('buttons.copyResult') }}
                       </el-button>
                       <el-button type="primary" size="small" @click="reRecognize" :disabled="!hasCurrentImage">
-                        重新识别
+                        {{ $t('buttons.reRecognize') }}
                       </el-button>
                       <el-button type="success" size="small" @click="submitFeedback(currentResult, 'Perfect')">
-                        👍 完美
+                        👍 {{ $t('buttons.perfect') }}
                       </el-button>
                       <el-button type="warning" size="small" @click="submitFeedback(currentResult, 'Mistake')">
-                        😕 失误
+                        😕 {{ $t('buttons.mistake') }}
                       </el-button>
                     </div>
                   </div>
@@ -119,11 +123,11 @@
       <el-footer class="app-footer">
         <div class="footer-content">
           <div class="footer-left">
-            <span>基于 MixTeX 模型 | 支持数学公式识别</span>
+            <span>{{ $t('footer.poweredBy') }} </span>
           </div>
           <div class="footer-right">
             <el-button type="text" size="small" @click="showAbout">
-              关于
+            {{ $t('footer.about') }} 
             </el-button>
           </div>
         </div>
@@ -137,13 +141,14 @@
 
 <script setup>
 import { ref, computed, provide } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { 
-  Upload, 
-  Document, 
-  CopyDocument, 
-  Close, 
-  Download 
+import {
+  Upload,
+  Document,
+  CopyDocument,
+  Close,
+  Download
   // Remove Refresh since we're not using it anymore
 } from '@element-plus/icons-vue'
 import ClipboardUpload from './components/ClipboardUpload.vue'
@@ -167,85 +172,78 @@ const downloadAndSetupModel = async () => {
   try {
     // Confirm with user before proceeding
     await ElMessageBox.confirm(
-      '将自动从GitHub下载MixTeX模型文件并设置。此过程可能需要几分钟时间，取决于您的网络速度。',
-      '下载模型',
+      t('download.confirmMessage'),
+      t('download.title'),
       {
-        confirmButtonText: '确认下载',
-        cancelButtonText: '取消',
+        confirmButtonText: t('download.confirmButton'),
+        cancelButtonText: t('download.cancelButton'),
         type: 'info'
       }
     )
-    
+
     isDownloading.value = true
-    showGlobalLoading('正在下载模型文件...')
-    
+    showGlobalLoading(t('download.downloading'))
+
     // Call backend endpoint to handle download, unzip and setup
     const response = await fetch('http://localhost:8000/download_model', {
       method: 'POST'
     })
-    
+
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.detail || '下载模型失败')
+      throw new Error(errorData.detail || t('download.downloadFailed'))
     }
-    
+
     const result = await response.json()
     hideGlobalLoading()
     isDownloading.value = false
-    
-    ElMessage.success('模型下载并设置成功！')
+
+    ElMessage.success(t('download.downloadSuccess'))
   } catch (error) {
     hideGlobalLoading()
     isDownloading.value = false
-    
+
     // Don't show error if user cancelled
     if (error.toString().includes('cancel')) return
-    
-    ElMessage.error(`模型下载失败: ${error.message || error}`)
+
+    ElMessage.error(`${t('download.downloadError')}: ${error.message || error}`)
   }
 }
 
-const handleShutdown = async () => {
-  try {
-    // Confirm before shutting down
-    await ElMessageBox.confirm(
-      '确定要关闭应用吗？',
-      '关闭应用',
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    showGlobalLoading('正在关闭应用...')
-    
-    // Call shutdown API
-    await fetch('http://localhost:8000/shutdown', {
-      method: 'POST'
-    })
-    
-    // The application should close itself, but just in case:
-    ElMessage.success('应用已关闭')
-    setTimeout(() => {
-      window.close()
-    }, 1000)
-    
-  } catch (error) {
-    hideGlobalLoading()
-    
-    // Don't show error if user cancelled
-    if (error.toString().includes('cancel')) return
-    
-    ElMessage.error(`操作失败: ${error.message || error}`)
-  }
+// Add i18n
+const { t, locale } = useI18n()
+const currentLanguage = ref(locale.value)
+
+const languageSwitch = ref(currentLanguage.value === 'zh')
+
+// Language change handler
+const changeLanguage = (lang) => {
+  locale.value = lang
+  currentLanguage.value = lang
+  localStorage.setItem('language', lang)
+  ElMessage.success(t('messages.languageChanged'))
 }
+
+// Handle switch change
+const onLanguageSwitchChange = (value) => {
+  const lang = value ? 'zh' : 'en'
+  changeLanguage(lang)
+}
+
+
+// // Add missing setLanguage function for backwards compatibility
+// const setLanguage = (lang) => {
+//   if (currentLanguage.value !== lang) {
+//     changeLanguage(lang)
+//     languageSwitch.value = lang === 'zh'
+//   }
+// }
 
 // 方法
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text)
-    ElMessage.success('已复制到剪贴板')
+    ElMessage.success(t('messages.copiedToClipboard'))
   } catch (error) {
     // 降级方案
     const textArea = document.createElement('textarea')
@@ -254,7 +252,7 @@ const copyToClipboard = async (text) => {
     textArea.select()
     document.execCommand('copy')
     document.body.removeChild(textArea)
-    ElMessage.success('已复制到剪贴板')
+    ElMessage.success(t('messages.copiedToClipboard'))
   }
 }
 
@@ -273,12 +271,12 @@ const submitFeedback = async (result, feedback) => {
     })
 
     if (response.ok) {
-      ElMessage.success('反馈已提交,虽然没什么用')
+      ElMessage.success(t('messages.feedbackSubmitted'))
     } else {
-      ElMessage.error('反馈提交失败')
+      ElMessage.error(t('messages.feedbackFailed'))
     }
   } catch (error) {
-    ElMessage.error('反馈提交失败')
+    ElMessage.error(t('messages.feedbackFailed'))
   }
 }
 
@@ -309,9 +307,9 @@ const addResult = (imageUrl, latex) => {
 }
 
 // 显示全局加载状态
-const showGlobalLoading = (message = '正在识别...') => {
+const showGlobalLoading = (message = null) => {
   if (globalLoadingRef.value) {
-    globalLoadingRef.value.show(message)
+    globalLoadingRef.value.show(message || t('messages.recognizing'))
   }
 }
 
@@ -365,6 +363,34 @@ provide('hideGlobalLoading', hideGlobalLoading)
   /* Ensure buttons in header align properly */
   align-items: center;
 }
+/* Language switch styles */
+.lang-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 120px; /* Fixed minimum width */
+}
+
+.lang-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+  min-width: 40px; /* Fixed width to prevent stretching */
+  text-align: left;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.lang-switch {
+  --el-switch-on-color: #409eff;
+  --el-switch-off-color: #dcdfe6;
+  width: 60px !important; /* Fixed width for the switch */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Ensure the switch button text doesn't cause stretching */
+.lang-switch .el-switch__core {
+  min-width: 60px;
+}
 
 .header-left h1 {
   margin: 0 0 5px 0;
@@ -378,6 +404,14 @@ provide('hideGlobalLoading', hideGlobalLoading)
   font-size: 1em;
   color: #666;
   opacity: 0.8;
+}
+
+.el-select .el-input {
+  width: 80px;
+}
+
+.el-select .el-input__inner {
+  text-align: center;
 }
 
 .main-content {
