@@ -23,7 +23,7 @@
 ### 1. 克隆项目
 
 ```bash
-git clone git@github.com:e-zz/MixTex-OCR-WebRebuild.git
+git clone https://github.com/e-zz/MixTex-OCR-WebRebuild.git
 cd MixTex-OCR-WebRebuild
 ```
 
