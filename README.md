@@ -1,102 +1,93 @@
-# MixTex-OCR-网站版
+# MixTex-OCR-Web Version
 
-本项目由[MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)修改而来，将原本的应用程序重构成了网站，功能基本上不变，模型用的原模型。（我只是个搬运工，再次感谢原作者）
+> 中文文档请阅读 [README.zh-CN.md](./README.zh-CN.md)
 
-前端使用vue，后端使用Fastapi（对这俩都不太熟，只是感觉开发比较快，代码健壮性可能有很大问题 @_ @ ）
+This project is modified from [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR), restructuring the original application into a web-based version. The functionality remains largely unchanged, using the original model. (Thanks again to the original author)
 
-没有用到数据库，因为感觉持久化没啥意义。（个人使用场景下，用不到）
+No database is used, as I felt persistence wasn't meaningful. (In personal use scenarios, it's not needed)
 
-前端界面截图：
+Frontend interface screenshot:
 
-![image-20250728162401843](https://picture-typora.obs.cn-north-4.myhuaweicloud.com/images/image-20250728162401843.png)
+![Frontend Interface](https://raw.githubusercontent.com/e-zz/MixTex-OCR-WebRebuild/main/assets/screenshot.png)
 
-（非常简陋的界面）感谢Claude     :   )
+(Very rudimentary interface) Thanks Claude     :   )
 
+## Installation Steps
 
-
-## 安装步骤
-
-### 1. 克隆项目
+### 1. Clone the Project
 
 ```bash
 git clone git@github.com:e-zz/MixTex-OCR-WebRebuild.git
 cd MixTex-OCR-WebRebuild
 ```
 
-### 2. 安装后端依赖
+### 2. Install Backend Dependencies
 
 ```bash
 cd webapi
 pip install -r requirements.txt
 ```
 
-### 3. 安装前端依赖
+### 3. Install Frontend Dependencies
 
 ```bash
 cd ../web-frontend
 npm install
 ```
 
-## 运行项目
+## Running the Project
 
-### 1. 启动
-可以直接运行 `.run.sh` 启动。
+### 1. Startup
+You can launch the application by running the `.run.sh` script, or use `python start.py` as an alternative.
 
-成功运行后，默认情况下前端将使用 http://localhost:3000 端口，后端API将在 http://localhost:8000 提供服务。
+After successful startup, by default the frontend will use http://localhost:3000 port, and the backend API will be available at http://localhost:8000.
+
 <details>
-    <summary>另外，也可手动运行如下</summary>
+    <summary>Alternatively, you can manually run the following</summary>
 
-
-> 启动后端服务
+> Start backend service
 ```bash
 cd webapi
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
 >
-> 前端开发服务器
+> Frontend development server
 > 
 ```bash
 cd ../web-frontend
 npm run dev
 ```
-> 提示：当进程未正常关闭导致端口占用，再次启动时，可能无法正常运行。因此建议使用 `.run.sh` 脚本启动，结束运行请通过网页右上角关闭按钮。
 
 </details>
 
+### 2. Model Download
+Click the `Download and Setup Model` button in the top-right corner of the webpage and wait for the download to complete. If the model updates, clicking download again will automatically overwrite.
 
-
-
-### 2. 模型下载
-点击网页右上角的`下载并设置模型`按钮，等待下载完成即可。若模型更新，再次点击下载可自动覆盖。
-
-
-> 或者：手动前往 https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest 下载解压，并将 `onxx` 文件夹内容，复制到项目`model`文件夹内。
-
+> Alternatively: Manually go to https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest to download and extract, then copy the contents of the `onnx` folder to the project's model folder.
 
 ## TODO
-- [ ] 输出为 `Typst`
+- [ ] Output as `Typst`
 
+## Development
 
-## 开发
-
-### 项目结构
+### Project Structure
 
 ```
-├── model/                # 模型文件目录
-│   ├── encoder_model.onnx       # 编码器模型
-│   ├── decoder_model_merged.onnx # 解码器模型
-│   ├── tokenizer.json           # 分词器配置
-│   └── ...                      # 其他模型文件
-├── web-frontend/        # 前端项目
-│   ├── src/                     # 源代码
-│   ├── package.json             # 前端依赖配置
-│   └── ...                      # 其他前端文件
-└── webapi/              # 后端API
-    ├── app.py                   # FastAPI应用
-    └── ...                      # 其他后端文件
+├── model/                # Model files directory
+│   ├── encoder_model.onnx       # Encoder model
+│   ├── decoder_model_merged.onnx # Decoder model
+│   ├── tokenizer.json           # Tokenizer configuration
+│   └── ...                      # Other model files
+├── web-frontend/        # Frontend project
+│   ├── src/                     # Source code
+│   ├── package.json             # Frontend dependency configuration
+│   └── ...                      # Other frontend files
+└── webapi/              # Backend API
+    ├── app.py                   # FastAPI application
+    └── ...                      # Other backend files
 ```
 
-### 后端环境
+### Backend Environment
 
 - Python 3.8+
 - ONNX Runtime
@@ -104,29 +95,28 @@ npm run dev
 - Uvicorn
 - Transformers
 - Pillow
-- 其他依赖（见requirements.txt）
+- Other dependencies (see requirements.txt)
 
-### 前端环境
+### Frontend Environment
 
 - Node.js 16+
-- npm 或 yarn
+- npm or yarn
 - Vue 3
 - Element Plus
 - Axios
 
-### API接口说明
+### API Interface Documentation
 
-- `GET /`: API健康检查
-- `GET /health`: 模型加载状态检查
-- `POST /predict`: 上传图片识别数学公式
-- `POST /predict_base64`: 使用Base64编码图片识别数学公式
-- `POST /predict_clipboard`: 处理剪贴板图片识别数学公式
-- `POST /feedback`: 提交反馈（没什么用）
-- `GET /statistics`: 获取使用统计（前端给删了）
-- `POST /reload_model`: 重新加载模型
+- `GET /`: API health check
+- `GET /health`: Model loading status check
+- `POST /predict`: Upload image to recognize mathematical formulas
+- `POST /predict_base64`: Recognize mathematical formulas using Base64 encoded images
+- `POST /predict_clipboard`: Process clipboard image recognition for mathematical formulas
+- `POST /feedback`: Submit feedback (not very useful)
+- `GET /statistics`: Get usage statistics (removed from frontend)
+- `POST /reload_model`: Reload model
 
-
-## 致谢
+## Acknowledgments
 
 - [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)
 - [MixTex-OCR-WebRebuild](https://github.com/OnHaiping/MixTex-OCR-WebRebuild)
