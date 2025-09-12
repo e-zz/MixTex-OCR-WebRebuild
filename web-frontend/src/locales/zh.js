@@ -71,6 +71,9 @@ export default {
     model: '模型',
     modelText: '模型',
     typst: 'Typst 格式支持',
-    rebuilders: '网站版重构者'
+    rebuilders: '网站版重构者',
+    originalAuthor: '原作者',
+    credits: '贡献者',
+    and: '和'
   }
 }

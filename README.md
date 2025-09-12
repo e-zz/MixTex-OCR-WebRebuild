@@ -24,11 +24,15 @@ cd MixTex-OCR-WebRebuild
 ### 2. Install Backend Dependencies
 
 ```bash
-cd webapi
 pip install -r requirements.txt
 ```
 
-To get Typst output, ensure this project runs in an environment with `mitex-python` installed. For installation, refer to: [mitex-python](https://github.com/e-zz/mitex/tree/main/crates/mitex-python).
+To get Typst output, ensure `pandoc` is installed and accessible in your environment. For example, verify by running
+
+```
+pandoc -v
+```
+
 
 ### 3. Install Frontend Dependencies
 
@@ -40,7 +44,7 @@ npm install
 ## Running the Project
 
 ### 1. Startup
-You can launch the application by running the `.run.sh` script, or use `python start.py` as an alternative.
+You can launch the application by running the `start.sh` script, or use `python start.py` as an alternative.
 
 After successful startup, by default the frontend will use http://localhost:3000 port, and the backend API will be available at http://localhost:8000.
 

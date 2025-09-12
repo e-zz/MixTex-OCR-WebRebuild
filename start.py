@@ -11,6 +11,24 @@ BACKEND_DIR = ROOT / "webapi"
 FRONTEND_DIR = ROOT / "web-frontend"
 OUTPUT_ENCODING = "utf-8"  # force UTF-8 decoding with replacement
 
+def get_npm_command():
+    """Check if npm.cmd is accessible, otherwise use npm"""
+    try:
+        subprocess.check_call(["npm.cmd", "--version"], 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL)
+        return "npm.cmd"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        try:
+            subprocess.check_call(["npm", "--version"], 
+                                stdout=subprocess.DEVNULL, 
+                                stderr=subprocess.DEVNULL)
+            return "npm"
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("ERROR: Neither npm.cmd nor npm is available. Please install Node.js.", file=sys.stderr)
+
+npm_bin = get_npm_command()
+
 processes = []
 
 def port_in_use(port: int) -> bool:
@@ -45,15 +63,10 @@ def start_backend():
     processes.append(p)
     return p
 
-def ensure_frontend_deps():
-    if not (FRONTEND_DIR / "node_modules").exists():
-        print("Installing frontend dependencies (first run)...")
-        subprocess.check_call(["npm", "install"], cwd=FRONTEND_DIR)
-
 def run_diagnostics():
     print("[DIAG] Checking npm availability...")
     try:
-        subprocess.check_call('npm.cmd --help')
+        subprocess.check_call(f'{npm_bin} --help')
         print("[DIAG] npm OK")
     except Exception as e:
         print("[DIAG][ERROR] npm not runnable:", e)
@@ -61,8 +74,7 @@ def run_diagnostics():
 def start_frontend(check_npm=False):
     if check_npm:
         run_diagnostics()
-    ensure_frontend_deps()
-    cmd = ["npm.cmd", "run", "dev", "--", "--port", "3000"]
+    cmd = [npm_bin, "run", "dev", "--", "--port", "3000"]
     p = subprocess.Popen(
         cmd,
         cwd=FRONTEND_DIR,

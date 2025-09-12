@@ -14,7 +14,8 @@ import requests
 import zipfile
 from pathlib import Path
 from tqdm import tqdm
-from mitex_python import convert_latex_to_typst
+# from mitex_python import convert_latex_to_typst
+from pypandoc import convert_text
 
 # 配置日志
 # logging.basicConfig(level=logging.INFO)
@@ -377,10 +378,11 @@ def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=Fal
             
         if use_typst:
             try:
-                result = convert_latex_to_typst(result)
+                # result = convert_latex_to_typst(result)
+                # Use pandoc instead for text and equation mixed
+                result = convert_text(result, to="typst", format="tex")
                 logger.info(result)
             except Exception as e:
-                # TODO text and equation mixed handling
                 logger.error(f"Typst conversion failed: {e}")
                 return f"Typst conversion failed: {str(e)}", False
 

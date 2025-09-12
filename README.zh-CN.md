@@ -25,11 +25,15 @@ cd MixTex-OCR-WebRebuild
 ### 2. 安装后端依赖
 
 ```bash
-cd webapi
 pip install -r requirements.txt
 ```
 
-要获得 Typst 输出，请确保此项目在安装了 `mitex-python` 的环境中运行。安装请参照：[mitex-python](https://github.com/e-zz/mitex/tree/main/crates/mitex-python)。
+要获得 Typst 输出，请确保环境中已安装 `pandoc` 并可正常访问。例如，可通过运行以下命令进行验证：
+
+```
+pandoc -v
+```
+
 
 ### 3. 安装前端依赖
 若未安装 npm, 需要 
@@ -41,7 +45,7 @@ npm install
 ## 运行项目
 
 ### 1. 启动
-可以直接运行 `.run.sh` 启动，或者运行 `python start.py`。
+可以直接运行 `start.sh` 启动，或者运行 `python start.py`。
 
 成功运行后，默认情况下前端将使用 http://localhost:3000 端口，后端API将在 http://localhost:8000 提供服务。
 <details>

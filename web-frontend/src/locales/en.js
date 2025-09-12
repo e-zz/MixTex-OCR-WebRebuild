@@ -71,6 +71,9 @@ export default {
     model: 'Model',
     modelText: 'Model',
     typst: 'Typst Format Conversion',
-    rebuilders: 'Web Version Rebuilders'
+    rebuilders: 'Web Version Rebuilders',
+    originalAuthor: 'Original Author',
+    credits: 'Contributors',
+    and: 'and'
   }
 }
