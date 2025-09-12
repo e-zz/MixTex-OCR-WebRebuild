@@ -59,6 +59,17 @@ export default {
   },
   footer: {
     poweredBy: 'Powered by MixTeX OCR',
-    about: 'About'
+    about: 'About',
+    projectLink: 'Project Homepage'
+  },
+  about: {
+    title: 'About MixTeX OCR',
+    webVersion: 'MixTeX OCR Web Version',
+    techStack: 'Tech Stack',
+    frontend: 'Frontend',
+    backend: 'Backend',
+    model: 'Model',
+    modelText: 'Model',
+    rebuilders: 'Web Version Rebuilders'
   }
 }

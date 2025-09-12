@@ -3,25 +3,18 @@
     <div v-if="visible" class="about-popup-overlay" @click.self="close">
       <div class="about-popup-container">
         <div class="about-popup-header">
-          <h2>关于 MixTeX OCR</h2>
+          <h2>{{ $t('about.title') }}</h2>
           <button class="close-button" @click="close">&times;</button>
         </div>
         <div class="about-popup-content">
-          <h3>MixTeX OCR 网页版</h3>
-          <!-- <p><strong>主要功能：</strong></p>
+          <h3>{{ $t('about.webVersion') }}</h3>
+          <p><strong>{{ $t('about.techStack') }}:</strong></p>
           <ul>
-            <li>📋 剪贴板图片粘贴识别</li>
-            <li>🔄 自动识别处理</li>
-            <li>📝 实时结果预览</li>
-            <li>📋 一键复制结果</li>
-          </ul> -->
-          <p><strong>技术栈：</strong></p>
-          <ul>
-            <li>前端：Vue 3 + Element Plus</li>
-            <li>后端：FastAPI</li>
-            <li>模型：MixTeX 模型</li>
+            <li>{{ $t('about.frontend') }}: Vue 3 + Element Plus</li>
+            <li>{{ $t('about.backend') }}: FastAPI</li>
+            <li>{{ $t('about.model') }}: MixTeX {{ $t('about.modelText') }}</li>
           </ul>
-          <p><strong>网站版重构者：Hipeace</strong></p>
+          <p><strong>{{ $t('about.rebuilders') }}:</strong> Hipeace, e-zz</p>
         </div>
       </div>
     </div>
@@ -29,26 +22,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+// Add i18n
+const { t } = useI18n()
 
 // 响应式状态
-const visible = ref(false);
+const visible = ref(false)
 
 // 显示弹窗
 const show = () => {
-  visible.value = true;
-};
+  visible.value = true
+}
 
 // 关闭弹窗
 const close = () => {
-  visible.value = false;
-};
+  visible.value = false
+}
 
 // 暴露方法给外部使用
 defineExpose({
   show,
   close
-});
+})
 </script>
 
 <style scoped>

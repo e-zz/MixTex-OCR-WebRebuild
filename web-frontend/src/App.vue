@@ -124,10 +124,18 @@
         <div class="footer-content">
           <div class="footer-left">
             <span>{{ $t('footer.poweredBy') }} </span>
+            <a href="https://github.com/RQLuo/MixTeX-Latex-OCR" target="_blank" class="footer-link">
+              <el-icon><Link /></el-icon>
+            </a>
           </div>
           <div class="footer-right">
+            <el-button type="text" size="small" > 
+            <a href="https://github.com/e-zz/MixTex-OCR-WebRebuild" target="_blank" >
+              {{ $t('footer.projectLink') }}
+            </a>
+            </el-button>
             <el-button type="text" size="small" @click="showAbout">
-            {{ $t('footer.about') }} 
+              {{ $t('footer.about') }} 
             </el-button>
           </div>
         </div>
@@ -605,6 +613,41 @@ provide('hideGlobalLoading', hideGlobalLoading)
     gap: 10px;
     text-align: center;
   }
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Override webkit default link styles with higher specificity */
+a.footer-link,
+a.footer-link:link,
+a.footer-link:visited,
+a.footer-link:hover,
+a.footer-link:active,
+a.footer-link:-webkit-any-link {
+  color: #409eff !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  transition: color 0.3s;
+}
+
+a.footer-link:hover {
+  color: #66b1ff !important;
+}
+
+.footer-right a,
+.footer-right a:link,
+.footer-right a:visited,
+.footer-right a:hover,
+.footer-right a:active,
+.footer-right a:-webkit-any-link {
+  color: inherit !important;
+  text-decoration: none !important;
 }
 
 /* 滚动条样式 */

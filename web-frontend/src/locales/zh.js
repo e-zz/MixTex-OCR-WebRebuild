@@ -60,5 +60,16 @@ export default {
   footer: {
     poweredBy: '由 MixTeX OCR 提供技术支持',
     about: '关于',
+    projectLink: '访问项目主页'
+  },
+  about: {
+    title: '关于 MixTeX OCR',
+    webVersion: 'MixTeX OCR 网页版',
+    techStack: '技术栈',
+    frontend: '前端',
+    backend: '后端',
+    model: '模型',
+    modelText: '模型',
+    rebuilders: '网站版重构者'
   }
 }
