@@ -9,14 +9,12 @@ from transformers import RobertaTokenizer, ViTImageProcessor
 import onnxruntime as ort
 import base64
 import logging
-import sys
-import subprocess
 import shutil
 import requests
 import zipfile
 from pathlib import Path
 from tqdm import tqdm
-from mitex_python import convert_latex_math
+from mitex_python import convert_latex_to_typst
 
 # 配置日志
 # logging.basicConfig(level=logging.INFO)
@@ -379,7 +377,7 @@ def mixtex_inference(image, max_length=512, use_dollars=False, convert_align=Fal
             
         if use_typst:
             try:
-                result = convert_latex_math(result)
+                result = convert_latex_to_typst(result)
                 logger.info(result)
             except Exception as e:
                 # TODO text and equation mixed handling
@@ -399,35 +397,6 @@ async def startup_event():
     if not load_model():
         logger.error("Failed to load model during startup")
 
-@app.post("/shutdown")
-async def shutdown():
-    """Shutdown the application completely, including parent Uvicorn process"""
-    try:
-        logger.info("Application shutdown requested")
-        
-        # Get the current process
-        current_process = psutil.Process(os.getpid())
-        
-        # Find the parent Uvicorn process
-        parent = current_process.parent()
-        
-        if parent and "uvicorn" in parent.name().lower():
-            logger.info(f"Terminating parent Uvicorn process (PID: {parent.pid})")
-            # Kill the parent process and all its children
-            parent.terminate()
-            
-            # Return success before the process is killed
-            return {"success": True, "message": "Application is shutting down completely"}
-        
-        # If we can't find the parent, at least try to kill our own process
-        logger.info("Parent Uvicorn process not found, terminating current process")
-        # Use SIGTERM for cleaner shutdown
-        os.kill(os.getpid(), signal.SIGTERM)
-        
-        return {"success": True, "message": "Application is shutting down"}
-    except Exception as e:
-        logger.error(f"Shutdown error: {e}")
-        raise HTTPException(status_code=500, detail=f"Shutdown failed: {str(e)}")
 
 
 @app.get("/")
