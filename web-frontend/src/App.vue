@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, computed, provide } from 'vue'
+import { ref, computed, provide, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -157,7 +157,8 @@ import {
   Document,
   CopyDocument,
   Close,
-  Download
+  Download,
+  Link
   // Remove Refresh since we're not using it anymore
 } from '@element-plus/icons-vue'
 import ClipboardUpload from './components/ClipboardUpload.vue'
@@ -221,9 +222,27 @@ const downloadAndSetupModel = async () => {
 
 // Add i18n
 const { t, locale } = useI18n()
-const currentLanguage = ref(locale.value)
 
+// Initialize from localStorage (runs once)
+const storedLang = localStorage.getItem('language')
+if (storedLang && storedLang !== locale.value) {
+  locale.value = storedLang
+}
+
+const currentLanguage = ref(locale.value)
 const languageSwitch = ref(currentLanguage.value === 'zh')
+
+// Keep switch in sync if locale changes elsewhere
+watchEffect(() => {
+  languageSwitch.value = locale.value === 'zh'
+})
+
+watchEffect(() => {
+  const title = t('app.title')
+  document.title = (title && title !== 'app.title')
+    ? title
+    : 'MixTeX OCR'
+})
 
 // Language change handler
 const changeLanguage = (lang) => {
@@ -240,13 +259,6 @@ const onLanguageSwitchChange = (value) => {
 }
 
 
-// // Add missing setLanguage function for backwards compatibility
-// const setLanguage = (lang) => {
-//   if (currentLanguage.value !== lang) {
-//     changeLanguage(lang)
-//     languageSwitch.value = lang === 'zh'
-//   }
-// }
 
 // 方法
 const copyToClipboard = async (text) => {

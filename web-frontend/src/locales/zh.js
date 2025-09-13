@@ -1,4 +1,7 @@
 export default {
+  "app": {
+    "title": "MixTeX OCR - 图片转数学公式"
+  },
   header: {
     title: 'MixTeX OCR',
     downloadModel: '下载并设置模型',

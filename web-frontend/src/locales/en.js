@@ -1,4 +1,7 @@
 export default {
+  "app": {
+    "title": "MixTeX OCR - Image to Math Formula"
+  },
   header: {
     title: 'MixTeX OCR',
     downloadModel: 'Download and Setup Model',
