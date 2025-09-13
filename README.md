@@ -29,42 +29,78 @@ cd MixTex-OCR-WebRebuild
 
 ### 2. Install Backend Dependencies
 
+> **Prerequisites:**
+> - Python 3.8+ (tested with Python 3.10.18 and 3.13.7)
+> - Works on Windows 10 and Ubuntu 22.04
+> - **Strongly recommended**: Use a virtual environment ([venv](https://docs.python.org/3/library/venv.html) or [conda](https://www.anaconda.com/))
+
+Install the backend dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-To get Typst output, ensure `pandoc` is installed and accessible in your environment. You can follow [the Pandoc installation guide](https://pandoc.org/installing.html) and verify by running
-
-```
-pandoc -v
-```
+> **Additional setup for Typst users:**
+> 
+> To get Typst output, ensure `pandoc` is installed and accessible in your environment. You can follow [the Pandoc installation guide](https://pandoc.org/installing.html) and verify by running
+> 
+> ```
+> pandoc -v
+> ```
 
 
 ### 3. Install Frontend Dependencies
+
+
+> **Prerequisites:** 
+> * [Node.js](https://nodejs.org/) 16+ and `npm` 
+
 
 ```bash
 cd web-frontend
 npm install
 ```
 
+
 ## Running the Project
 
-### 1. Startup
-You can launch the application by running the `start.sh` script, or use `python start.py` as an alternative.
+> **Important:** Activate your virtual environment (where you installed the backend dependencies) before starting.
 
-After successful startup, by default the frontend will use http://localhost:3000 port, and the backend API will be available at http://localhost:8000.
+### Starting the Application
+
+**Recommended method:**
+```bash
+python start.py
+# Use Ctrl+C to safely stop all services
+```
+
+After startup, the application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+
+**Alternative methods:**
 
 <details>
-    <summary>Alternatively, you can manually run the following commands</summary>
+    <summary> Use start.sh (Linux/Mac) </summary>
+```bash
+./start.sh
+# Use ./stop_app.sh to stop (may not work reliably)
+```
 
-> Start backend service
+> **Note:** `start.sh` + `stop_app.sh` is less reliable as it tracks process IDs in log files, which can fail. We recommend using `python start.py` for guaranteed clean shutdown.
+
+</details>
+
+<details>
+<summary>Manual startup (for development)</summary>
+
+Backend:
 ```bash
 cd webapi
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
->
-> Frontend development server
-> 
+
+Frontend:
 ```bash
 cd ../web-frontend
 npm run dev
@@ -72,10 +108,14 @@ npm run dev
 
 </details>
 
-### 2. Model Download
-Click the `Download and Setup Model` button in the top-right corner of the webpage and wait for the download to complete. If the model updates, clicking download again will automatically overwrite.
+### First-Time Setup
 
-> Alternatively: Manually go to https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest to download and extract, then copy the contents of the `onnx` folder to the project's model folder.
+1. Click **"Download and Setup Model"** in the top-right corner of the webpage
+2. Wait for the download to complete
+3. Start using the OCR functionality
+
+> **Alternative**: Manually download from [MixTeX-Latex-OCR releases](https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest), extract, and copy the `onnx` folder contents to `./model/`
+
 
 ## Development
 

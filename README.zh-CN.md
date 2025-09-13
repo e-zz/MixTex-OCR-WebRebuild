@@ -29,10 +29,19 @@ cd MixTex-OCR-WebRebuild
 
 ### 2. 安装后端依赖
 
+> **前提条件：**
+> - Python 3.8+（已在 Python 3.10.18 和 3.13.7 上测试）
+> - 在 Windows 10 和 Ubuntu 22.04 上运行
+> - **强烈推荐**：使用虚拟环境（[venv](https://docs.python.org/3/library/venv.html) 或 [conda](https://www.anaconda.com/)）
+
+安装后端依赖：
+
 ```bash
 pip install -r requirements.txt
 ```
 
+> **Typst 用户的额外设置：**
+> 
 要获得 Typst 输出，请确保环境中已安装 `pandoc` 并可正常访问。您可以按照 [Pandoc 安装指南](https://pandoc.org/installing.html) 进行安装，并通过运行以下命令进行验证
 
 ```
@@ -41,7 +50,10 @@ pandoc -v
 
 
 ### 3. 安装前端依赖
-若未安装 npm, 需要 
+
+> **前提条件：** 
+> * [Node.js](https://nodejs.org/) 16+ 和 `npm` 
+
 ```bash
 cd web-frontend
 npm install
@@ -49,22 +61,46 @@ npm install
 
 ## 运行项目
 
-### 1. 启动
-可以直接运行 `start.sh` 启动，或者运行 `python start.py`。
+> **重要提示：** 启动前确保已激活 python 虚拟环境（上文中安装后端依赖的环境）。
 
-成功运行后，默认情况下前端将使用 http://localhost:3000 端口，后端API将在 http://localhost:8000 提供服务。
+### 启动应用程序
+
+**推荐方法：**
+```bash
+python start.py
+# 使用 Ctrl+C 安全停止所有服务
+```
+
+启动后，应用程序将在以下地址可用：
+- **前端**：http://localhost:3000
+- **后端API**：http://localhost:8000
+
+
+
+**其它方法：**
+
 <details>
-    <summary>另外，也可手动运行如下</summary>
+    <summary>使用 start.sh</summary>
 
+```bash
+./start.sh
+# 使用 ./stop_app.sh 停止（可能无法可靠工作）
+```
 
-> 启动后端服务
+> **注意：** `start.sh` + `stop_app.sh` 不太可靠，因为它在日志文件中跟踪进程ID，可能会失败。我们建议使用 `python start.py` 以确保干净关闭。
+
+</details>
+
+<details>
+<summary>手动启动（用于开发）</summary>
+
+后端：
 ```bash
 cd webapi
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
->
-> 前端开发服务器
-> 
+
+前端：
 ```bash
 cd ../web-frontend
 npm run dev
@@ -72,6 +108,11 @@ npm run dev
 
 </details>
 
+### 首次设置
+
+1. 点击网页右上角的**"下载并设置模型"**
+2. 等待下载完成
+3. 开始使用OCR功能
 
 
 
