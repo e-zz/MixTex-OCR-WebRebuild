@@ -10,7 +10,6 @@ Frontend interface screenshot:
 
 ![Frontend Interface](https://raw.githubusercontent.com/e-zz/MixTex-OCR-WebRebuild/main/assets/screenshot.png)
 
-(Very rudimentary interface) Thanks Claude     :   )
 
 ## Features
 
@@ -20,6 +19,16 @@ Frontend interface screenshot:
 
 ## Installation Steps
 
+The following steps have been only tested on Windows 10 and Ubuntu 22.04
+
+### 0. Prerequisites
+
+**Backend**: Python 3.8+ (tested with Python 3.10.18 and 3.13.7)
+- **Strongly recommended**: Use a virtual environment ([venv](https://docs.python.org/3/library/venv.html) or [conda](https://www.anaconda.com/)) to avoid conflicts 
+
+**Frontend**: [Node.js](https://nodejs.org/) 16+ and `npm` 
+
+
 ### 1. Clone the Project
 
 ```bash
@@ -27,12 +36,13 @@ git clone https://github.com/e-zz/MixTex-OCR-WebRebuild.git
 cd MixTex-OCR-WebRebuild
 ```
 
-### 2. Install Backend Dependencies
+> To update the project later, run:
+> ```bash
+> cd MixTex-OCR-WebRebuild
+> git pull
+> ```
 
-> **Prerequisites:**
-> - Python 3.8+ (tested with Python 3.10.18 and 3.13.7)
-> - Works on Windows 10 and Ubuntu 22.04
-> - **Strongly recommended**: Use a virtual environment ([venv](https://docs.python.org/3/library/venv.html) or [conda](https://www.anaconda.com/))
+### 2. Install Backend Dependencies
 
 Install the backend dependencies:
 
@@ -52,10 +62,6 @@ pip install -r requirements.txt
 ### 3. Install Frontend Dependencies
 
 
-> **Prerequisites:** 
-> * [Node.js](https://nodejs.org/) 16+ and `npm` 
-
-
 ```bash
 cd web-frontend
 npm install
@@ -66,7 +72,7 @@ npm install
 
 > **Important:** Activate your virtual environment (where you installed the backend dependencies) before starting.
 
-### Starting the Application
+### 1. Starting the Application
 
 **Recommended method:**
 ```bash
@@ -82,6 +88,7 @@ After startup, the application will be available at:
 
 <details>
     <summary> Use start.sh (Linux/Mac) </summary>
+
 ```bash
 ./start.sh
 # Use ./stop_app.sh to stop (may not work reliably)
@@ -108,13 +115,20 @@ npm run dev
 
 </details>
 
-### First-Time Setup
+### 2. First-Time Setup
 
 1. Click **"Download and Setup Model"** in the top-right corner of the webpage
 2. Wait for the download to complete
-3. Start using the OCR functionality
 
 > **Alternative**: Manually download from [MixTeX-Latex-OCR releases](https://github.com/RQLuo/MixTeX-Latex-OCR/releases/latest), extract, and copy the `onnx` folder contents to `./model/`
+
+Now you can start using the OCR functionality
+
+### 3. Tips on usage
+
+- **Image Size Limitation**: The model works best with images sized 400 x 500 pixels or smaller (according to [the MixTeX doc](https://github.com/RQLuo/MixTeX-Latex-OCR#demo)). Larger images may result in incomplete OCR output, for example, see issue https://github.com/e-zz/MixTex-OCR-WebRebuild/issues/1. 
+- OCR recognition typically produces results, except when Typst conversion encounters errors. If this occurs, disable Typst conversion and review the raw TeX output to identify issues.
+
 
 
 ## Development
