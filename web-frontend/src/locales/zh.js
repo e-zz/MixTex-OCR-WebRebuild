@@ -25,7 +25,6 @@ export default {
     formatSettings: '输出格式设置',
     useDollars: '使用 $ 符号包围行内公式',
     convertAlign: '转换align环境为单行公式 $$',
-    useTypst: '输出为 Typst'
   },
   messages: {
     recognizing: '正在识别图片中的数学公式...',
@@ -47,12 +46,23 @@ export default {
     feedbackSubmitted: "反馈已提交成功",
     feedbackFailed: "反馈提交失败",
     languageChanged: '语言已切换',
+    converting: '正在转换格式...',
+    conversionSuccess: '成功转换为 {format}',
+    conversionFailed: '转换格式失败',
+    conversionError: '转换错误',
+  },
+  formats: {
+    formatLabel: '输出为',
+    custom: '自定义',
+    customPlaceholder: '输入格式名称',
   },
   buttons: {
     copyResult: "复制结果",
     reRecognize: "重新识别",
-    perfect: "完美", 
-    mistake: "失误"
+    perfect: "完美",
+    mistake: "失误",
+    save: "保存",
+    remove: "移除"
   },
   dialogs: {
     confirmClose: '确定要关闭应用吗？',

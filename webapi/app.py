@@ -492,6 +492,40 @@ async def predict_base64(
         source="Base64图片"
     )
 
+@app.post("/convert_format")
+async def convert_format(
+    latex_text: str = Form(...),
+    target_format: str = Form(...)
+):
+    """Convert LaTeX to different formats using pypandoc"""
+    try:
+        target_format = target_format.lower()
+        logger.info(f"Converting LaTeX to {target_format}")
+        
+        if target_format == "latex":
+            # No conversion needed
+            return {"success": True, "converted_text": latex_text}
+        
+        try:
+            # Use pypandoc to convert directly
+            converted = convert_text(latex_text, to=target_format, format="latex")
+            return {"success": True, "converted_text": converted}
+        except Exception as e:
+            logger.error(f"Format conversion error: {e}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Conversion to {target_format} failed: {str(e)}"
+            )
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Format conversion error: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Format conversion failed: {str(e)}"
+        )
 
 @app.post("/predict_clipboard")
 async def predict_clipboard(
