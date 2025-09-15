@@ -29,9 +29,6 @@
         <el-col :span="12">
           <el-checkbox v-model="convertAlign">{{ $t('clipboard.convertAlign') }}</el-checkbox>
         </el-col>
-        <el-col :span="12">
-          <el-checkbox v-model="useTypst">{{ $t('clipboard.useTypst') }}</el-checkbox>
-        </el-col>
       </el-row>
     </div>
 
@@ -60,7 +57,6 @@ const isProcessing = ref(false)
 const isDragOver = ref(false)
 const loadingProgress = ref(0)
 const useDollars = ref(false)
-const useTypst = ref(true)
 const convertAlign = ref(false)
 const currentFile = ref(null)
 
@@ -178,7 +174,6 @@ const recognizeImage = async (file) => {
     formData.append('image_data', base64Data)
     formData.append('use_dollars', useDollars.value)
     formData.append('convert_align', convertAlign.value)
-    formData.append('use_typst', useTypst.value)
 
     const response = await axios.post(`${API_BASE}/predict_clipboard`, formData, {
       headers: {

@@ -92,14 +92,103 @@
                   </div>
 
                   <!-- 结果显示 -->
+                  
                   <div class="result-latex-section">
-                    <h4>{{ $t('messages.recognitionResult') }}</h4>
-                    <el-input v-model="currentResult.latex" type="textarea" :rows="6" readonly class="latex-input" />
+                    <div class="result-header">
+                      <h4>{{ $t('messages.recognitionResult') }}</h4>
+                      <div class="format-selector">
+                        <span class="format-label">{{ $t('formats.formatLabel') }}:</span>
+                        <el-radio-group 
+                          v-model="selectedFormat" 
+                          size="small"
+                          :disabled="isConverting || !hasCurrentImage"
+                        >
+                          <el-radio-button label="latex">LaTeX</el-radio-button>
+                          <el-radio-button label="typst">Typst</el-radio-button>
+                          <el-radio-button label="markdown">Markdown</el-radio-button>
+                          <!-- Custom format buttons -->
+                          <el-radio-button 
+                            v-for="(format, index) in customFormats" 
+                            :key="index"
+                            :label="format.id"
+                            class="custom-format-button"
+                          >
+                            <span>{{ format.label }}</span>
+                            <el-popover
+                              placement="bottom"
+                              :width="200"
+                              trigger="click"
+                              @show="editingFormatId = format.id"
+                              :disabled="isConverting || !hasCurrentImage"
+                            >
+                              <template #reference>
+                                <el-button 
+                                  type="text" 
+                                  size="small" 
+                                  class="edit-format-btn"
+                                  :disabled="isConverting || !hasCurrentImage"
+                                  @click.stop
+                                >
+                                  <el-icon><Edit /></el-icon>
+                                </el-button>
+                              </template>
+                              <div class="format-edit-popover">
+                                <el-input
+                                  v-model="format.label"
+                                  size="small"
+                                  placeholder="Format name"
+                                />
+                                <el-input
+                                  v-model="format.value"
+                                  size="small"
+                                  placeholder="Format value (e.g., 'html')"
+                                  style="margin-top: 8px"
+                                />
+                                <div class="format-edit-actions">
+                                  <el-button 
+                                    type="primary" 
+                                    size="small" 
+                                    @click="updateCustomFormat(format)"
+                                  >
+                                    {{ $t('buttons.save') }}
+                                  </el-button>
+                                  <el-button 
+                                    type="danger" 
+                                    size="small" 
+                                    @click="removeCustomFormat(format.id)"
+                                  >
+                                    {{ $t('buttons.remove') }}
+                                  </el-button>
+                                </div>
+                              </div>
+                            </el-popover>
+                          </el-radio-button>
+    
+                          <!-- Add format button -->
+                          <el-button 
+                            size="small" 
+                            circle 
+                            class="add-format-btn" 
+                            @click.stop="addCustomFormat"
+                            :disabled="isConverting || !hasCurrentImage"
+                          >
+                            <el-icon><Plus /></el-icon>
+                          </el-button>
+                        </el-radio-group>
+                    </div>
+                    
+                    <el-input 
+                      v-model="currentResult.latex" 
+                      type="textarea" 
+                      :rows="6" 
+                      readonly 
+                      class="latex-input" 
+                      :loading="isConverting"
+                    />
+                    
                     <div class="result-actions">
                       <el-button type="primary" size="small" @click="copyToClipboard(currentResult.latex)">
-                        <el-icon>
-                          <CopyDocument />
-                        </el-icon>
+                        <el-icon><CopyDocument /></el-icon>
                         {{ $t('buttons.copyResult') }}
                       </el-button>
                       <el-button type="primary" size="small" @click="reRecognize" :disabled="!hasCurrentImage">
@@ -115,6 +204,7 @@
                   </div>
                 </div>
               </div>
+            </div>
             </el-card>
           </el-col>
         </el-row>
@@ -149,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, computed, provide, watchEffect } from 'vue'
+import { ref, computed, provide, watchEffect, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -158,7 +248,10 @@ import {
   CopyDocument,
   Close,
   Download,
-  Link
+  Link,
+  Edit,  // Add these new icons
+  Plus,
+  Delete
   // Remove Refresh since we're not using it anymore
 } from '@element-plus/icons-vue'
 import ClipboardUpload from './components/ClipboardUpload.vue'
@@ -170,6 +263,13 @@ const currentResult = ref(null)
 const clipboardUploadRef = ref(null)
 const globalLoadingRef = ref(null)
 const aboutPopupRef = ref(null)
+
+// Format conversion related state
+const selectedFormat = ref('latex')
+const customFormats = ref([])
+const originalLatex = ref('') // Store the original LaTeX for conversions
+const isConverting = ref(false)
+const editingFormatId = ref(null)
 
 // 计算属性
 const hasCurrentImage = computed(() => currentResult.value !== null)
@@ -315,15 +415,171 @@ const reRecognize = async () => {
   }
 }
 
-// 添加结果到列表（只保存最新的）
+
+// Add a new custom format
+const addCustomFormat = () => {
+  const id = `custom-${Date.now()}`
+  customFormats.value.push({
+    id,
+    label: `Format ${customFormats.value.length + 1}`,
+    value: ''
+  })
+  
+  // Select the new format
+  selectedFormat.value = id
+  editingFormatId.value = id
+}
+
+// Update a custom format
+const updateCustomFormat = (format) => {
+  // Ensure we have valid values
+  if (!format.label.trim()) {
+    format.label = `Format ${customFormats.value.findIndex(f => f.id === format.id) + 1}`
+  }
+  
+  if (!format.value.trim()) {
+    format.value = format.label.toLowerCase()
+  }
+  
+  // If this is the currently selected format, trigger conversion
+  if (selectedFormat.value === format.id && originalLatex.value) {
+    convertFormat()
+  }
+  
+  // Save formats to localStorage
+  saveCustomFormats()
+  
+  // Close popover
+  editingFormatId.value = null
+}
+
+// Remove a custom format
+const removeCustomFormat = (id) => {
+  const index = customFormats.value.findIndex(f => f.id === id)
+  if (index !== -1) {
+    customFormats.value.splice(index, 1)
+    
+    // If this was the selected format, switch back to LaTeX
+    if (selectedFormat.value === id) {
+      selectedFormat.value = 'latex'
+    }
+    
+    // Save formats to localStorage
+    saveCustomFormats()
+  }
+}
+
+// Save custom formats to localStorage
+const saveCustomFormats = () => {
+  localStorage.setItem('customFormats', JSON.stringify(customFormats.value))
+}
+
+// Load custom formats from localStorage
+const loadCustomFormats = () => {
+  const saved = localStorage.getItem('customFormats')
+  if (saved) {
+    try {
+      customFormats.value = JSON.parse(saved)
+    } catch (e) {
+      console.error('Failed to parse custom formats:', e)
+    }
+  }
+}
+
+// Call this on component mount
+loadCustomFormats()
+
+// Modify the format conversion function to work with custom formats
+const convertFormat = async () => {
+  if (!currentResult.value || !originalLatex.value || isConverting.value) {
+    return
+  }
+
+  // Don't convert if already in LaTeX format
+  if (selectedFormat.value === 'latex') {
+    currentResult.value.latex = originalLatex.value
+    return
+  }
+
+  try {
+    isConverting.value = true
+    showGlobalLoading(t('messages.converting'))
+
+    // Get the format value
+    let formatName
+    if (selectedFormat.value.startsWith('custom-')) {
+      // Find the custom format
+      const format = customFormats.value.find(f => f.id === selectedFormat.value)
+      formatName = format ? format.value.trim() : 'custom'
+    } else {
+      formatName = selectedFormat.value
+    }
+
+    const formData = new FormData()
+    formData.append('latex_text', originalLatex.value)
+    formData.append('target_format', formatName)
+
+    const response = await fetch('http://localhost:8000/convert_format', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.detail || t('messages.conversionFailed'))
+    }
+
+    const result = await response.json()
+    
+    // Update the displayed text with the converted result
+    currentResult.value.latex = result.converted_text
+    
+    hideGlobalLoading()
+    ElMessage.success(t('messages.conversionSuccess', { format: formatName }))
+  } catch (error) {
+    hideGlobalLoading()
+    ElMessage.error(`${t('messages.conversionError')}: ${error.message || error}`)
+    
+    // Revert to original format on error
+    selectedFormat.value = 'latex'
+    currentResult.value.latex = originalLatex.value
+  } finally {
+    isConverting.value = false
+  }
+}
+
+// Update the watch for format changes
+watch(selectedFormat, async (newFormat) => {
+  // Only convert if we have content
+  if (currentResult.value?.latex && !isConverting.value && originalLatex.value) {
+    await convertFormat()
+  }
+})
+
+// Override the addResult function to store original LaTeX without resetting format
 const addResult = (imageUrl, latex) => {
   const now = new Date()
   const timeStr = now.toLocaleTimeString()
 
-  currentResult.value = {
+  // Store original LaTeX but don't reset format
+  originalLatex.value = latex
+
+  // Create initial result object with the original LaTeX
+  const newResult = {
     imageUrl,
     latex,
     time: timeStr
+  }
+
+  // Set the current result
+  currentResult.value = newResult
+
+  // If format is not LaTeX, convert immediately to maintain the selected format
+  if (selectedFormat.value !== 'latex' && !isConverting.value) {
+    // Use nextTick to ensure the UI updates first
+    nextTick(() => {
+      convertFormat()
+    })
   }
 }
 
@@ -553,6 +809,58 @@ provide('hideGlobalLoading', hideGlobalLoading)
   flex-wrap: wrap;
 }
 
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.result-header h4 {
+  margin: 0;
+}
+
+.format-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.format-label {
+  font-size: 14px;
+  color: #606266;
+}
+
+/* Ensure radio buttons are properly spaced and styled */
+.el-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+@media (max-width: 768px) {
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .format-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  .format-selector .el-input {
+    margin-left: 0 !important;
+    width: 100% !important;
+    margin-top: 5px;
+  }
+}
+
 .app-footer {
   background: #ffffff;
   border-top: 1px solid #e4e7ed;
@@ -681,5 +989,47 @@ a.footer-link:hover {
 
 .result-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.custom-format-button {
+  position: relative;
+  padding-right: 30px !important;
+}
+
+.edit-format-btn {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 2px !important;
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  color: #909399 !important;
+}
+
+.edit-format-btn:hover {
+  color: #409EFF !important;
+}
+
+.add-format-btn {
+  margin-left: 4px !important;
+}
+
+.format-edit-popover {
+  padding: 8px;
+}
+
+.format-edit-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+/* Make sure popover doesn't break mobile layout */
+@media (max-width: 768px) {
+  .el-popover.el-popper {
+    max-width: 90vw !important;
+  }
 }
 </style>

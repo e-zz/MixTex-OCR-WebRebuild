@@ -25,7 +25,6 @@ export default {
     formatSettings: 'Output Format Settings',
     useDollars: 'Use $ symbols for inline formulas',
     convertAlign: 'Convert align environment to single-line formulas $$',
-    useTypst: 'Output as Typst'
   },
   messages: {
     recognizing: 'Recognizing mathematical formulas in image...',
@@ -47,12 +46,23 @@ export default {
     feedbackSubmitted: 'Feedback submitted successfully',
     feedbackFailed: 'Failed to submit feedback',
     languageChanged: 'Language changed',
+    converting: 'Converting format...',
+    conversionSuccess: 'Converted to {format}',
+    conversionFailed: 'Failed to convert format',
+    conversionError: 'Conversion error',
+  },
+  formats: {
+    formatLabel: 'Output as',
+    custom: 'Custom',
+    customPlaceholder: 'Enter format name',
   },
   buttons: {
     copyResult: 'Copy Result',
     reRecognize: 'Re-recognize', 
     perfect: 'Perfect',
-    mistake: 'Mistake'
+    mistake: 'Mistake',
+    save: 'Save',
+    remove: 'Remove'
   },
   dialogs: {
     confirmClose: 'Are you sure you want to close the application?',
