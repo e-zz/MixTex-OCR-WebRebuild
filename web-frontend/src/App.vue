@@ -11,18 +11,17 @@
             <h1>MixTeX OCR</h1>
           </div>
           <div class="header-right">
-
-            <el-button 
-              type="primary" 
-              size="small" 
-              @click="downloadAndSetupModel" 
+            <el-button
+              type="primary"
+              size="small"
+              @click="downloadAndSetupModel"
               :loading="isDownloading"
-              style="margin-right: 40px;"
+              style="margin-right: 40px"
             >
               <el-icon><Download /></el-icon>
-              {{ $t('header.downloadModel') }}
+              {{ $t("header.downloadModel") }}
             </el-button>
-            
+
             <div class="lang-toggle-wrapper">
               <!-- <span class="lang-label">EN</span> -->
               <el-switch
@@ -33,7 +32,9 @@
                 active-text="中文"
                 inactive-text="EN"
               />
-              <span class="lang-label">{{ $t("header.alternativeLanguage") }}</span>
+              <span class="lang-label">{{
+                $t("header.alternativeLanguage")
+              }}</span>
             </div>
           </div>
         </div>
@@ -43,14 +44,21 @@
       <el-main class="main-content">
         <el-row :gutter="20" class="content-row">
           <!-- 左侧功能区域 -->
-          <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12" class="left-panel">
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="24"
+            :lg="12"
+            :xl="12"
+            class="left-panel"
+          >
             <el-card class="function-card" shadow="hover">
               <template #header>
                 <div class="card-header">
                   <el-icon>
                     <Upload />
                   </el-icon>
-                  <span>{{ $t('clipboard.title') }}</span>
+                  <span>{{ $t("clipboard.title") }}</span>
                 </div>
               </template>
 
@@ -62,15 +70,21 @@
           </el-col>
 
           <!-- 右侧结果显示区域 -->
-          <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12" class="right-panel">
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="24"
+            :lg="12"
+            :xl="12"
+            class="right-panel"
+          >
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
                   <el-icon>
                     <Document />
                   </el-icon>
-                  <span>{{ $t('messages.recognitionResult') }}</span>
-
+                  <span>{{ $t("messages.recognitionResult") }}</span>
                 </div>
               </template>
 
@@ -80,35 +94,43 @@
                   <el-icon class="empty-icon">
                     <Document />
                   </el-icon>
-                  <p>{{ $t('messages.recognitionNoResult') }}</p>
-                  <p class="empty-tip">{{ $t('messages.uploadReminder') }}</p>
+                  <p>{{ $t("messages.recognitionNoResult") }}</p>
+                  <p class="empty-tip">{{ $t("messages.uploadReminder") }}</p>
                 </div>
 
                 <div v-else class="current-result">
                   <!-- 图片显示 -->
                   <div class="result-image-section">
-                    <h4>{{ $t('messages.recognizeImage') }}</h4>
-                    <img :src="currentResult.imageUrl" alt="{{ $t('messages.recognizeImage') }}" class="result-image" />
+                    <h4>{{ $t("messages.recognizeImage") }}</h4>
+                    <img
+                      :src="currentResult.imageUrl"
+                      alt="{{ $t('messages.recognizeImage') }}"
+                      class="result-image"
+                    />
                   </div>
 
                   <!-- 结果显示 -->
-                  
+
                   <div class="result-latex-section">
                     <div class="result-header">
-                      <h4>{{ $t('messages.recognitionResult') }}</h4>
+                      <h4>{{ $t("messages.recognitionResult") }}</h4>
                       <div class="format-selector">
-                        <span class="format-label">{{ $t('formats.formatLabel') }}:</span>
-                        <el-radio-group 
-                          v-model="selectedFormat" 
+                        <span class="format-label"
+                          >{{ $t("formats.formatLabel") }}:</span
+                        >
+                        <el-radio-group
+                          v-model="selectedFormat"
                           size="small"
                           :disabled="isConverting || !hasCurrentImage"
                         >
                           <el-radio-button label="latex">LaTeX</el-radio-button>
                           <el-radio-button label="typst">Typst</el-radio-button>
-                          <el-radio-button label="markdown">Markdown</el-radio-button>
+                          <el-radio-button label="markdown"
+                            >Markdown</el-radio-button
+                          >
                           <!-- Custom format buttons -->
-                          <el-radio-button 
-                            v-for="(format, index) in customFormats" 
+                          <el-radio-button
+                            v-for="(format, index) in customFormats"
                             :key="index"
                             :label="format.id"
                             class="custom-format-button"
@@ -122,9 +144,9 @@
                               :disabled="isConverting || !hasCurrentImage"
                             >
                               <template #reference>
-                                <el-button 
-                                  type="text" 
-                                  size="small" 
+                                <el-button
+                                  type="text"
+                                  size="small"
                                   class="edit-format-btn"
                                   :disabled="isConverting || !hasCurrentImage"
                                   @click.stop
@@ -145,66 +167,83 @@
                                   style="margin-top: 8px"
                                 />
                                 <div class="format-edit-actions">
-                                  <el-button 
-                                    type="primary" 
-                                    size="small" 
+                                  <el-button
+                                    type="primary"
+                                    size="small"
                                     @click="updateCustomFormat(format)"
                                   >
-                                    {{ $t('buttons.save') }}
+                                    {{ $t("buttons.save") }}
                                   </el-button>
-                                  <el-button 
-                                    type="danger" 
-                                    size="small" 
+                                  <el-button
+                                    type="danger"
+                                    size="small"
                                     @click="removeCustomFormat(format.id)"
                                   >
-                                    {{ $t('buttons.remove') }}
+                                    {{ $t("buttons.remove") }}
                                   </el-button>
                                 </div>
                               </div>
                             </el-popover>
                           </el-radio-button>
-    
+
                           <!-- Add format button -->
-                          <el-button 
-                            size="small" 
-                            circle 
-                            class="add-format-btn" 
+                          <el-button
+                            size="small"
+                            circle
+                            class="add-format-btn"
                             @click.stop="addCustomFormat"
                             :disabled="isConverting || !hasCurrentImage"
                           >
                             <el-icon><Plus /></el-icon>
                           </el-button>
                         </el-radio-group>
-                    </div>
-                    
-                    <el-input 
-                      v-model="currentResult.latex" 
-                      type="textarea" 
-                      :rows="6" 
-                      readonly 
-                      class="latex-input" 
-                      :loading="isConverting"
-                    />
-                    
-                    <div class="result-actions">
-                      <el-button type="primary" size="small" @click="copyToClipboard(currentResult.latex)">
-                        <el-icon><CopyDocument /></el-icon>
-                        {{ $t('buttons.copyResult') }}
-                      </el-button>
-                      <el-button type="primary" size="small" @click="reRecognize" :disabled="!hasCurrentImage">
-                        {{ $t('buttons.reRecognize') }}
-                      </el-button>
-                      <el-button type="success" size="small" @click="submitFeedback(currentResult, 'Perfect')">
-                        👍 {{ $t('buttons.perfect') }}
-                      </el-button>
-                      <el-button type="warning" size="small" @click="submitFeedback(currentResult, 'Mistake')">
-                        😕 {{ $t('buttons.mistake') }}
-                      </el-button>
+                      </div>
+
+                      <el-input
+                        v-model="currentResult.latex"
+                        type="textarea"
+                        :rows="6"
+                        readonly
+                        class="latex-input"
+                        :loading="isConverting"
+                      />
+
+                      <div class="result-actions">
+                        <el-button
+                          type="primary"
+                          size="small"
+                          @click="copyToClipboard(currentResult.latex)"
+                        >
+                          <el-icon><CopyDocument /></el-icon>
+                          {{ $t("buttons.copyResult") }}
+                        </el-button>
+                        <el-button
+                          type="primary"
+                          size="small"
+                          @click="reRecognize"
+                          :disabled="!hasCurrentImage"
+                        >
+                          {{ $t("buttons.reRecognize") }}
+                        </el-button>
+                        <el-button
+                          type="success"
+                          size="small"
+                          @click="submitFeedback(currentResult, 'Perfect')"
+                        >
+                          👍 {{ $t("buttons.perfect") }}
+                        </el-button>
+                        <el-button
+                          type="warning"
+                          size="small"
+                          @click="submitFeedback(currentResult, 'Mistake')"
+                        >
+                          😕 {{ $t("buttons.mistake") }}
+                        </el-button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
             </el-card>
           </el-col>
         </el-row>
@@ -214,19 +253,26 @@
       <el-footer class="app-footer">
         <div class="footer-content">
           <div class="footer-left">
-            <span>{{ $t('footer.poweredBy') }} </span>
-            <a href="https://github.com/RQLuo/MixTeX-Latex-OCR" target="_blank" class="footer-link">
+            <span>{{ $t("footer.poweredBy") }} </span>
+            <a
+              href="https://github.com/RQLuo/MixTeX-Latex-OCR"
+              target="_blank"
+              class="footer-link"
+            >
               <el-icon><Link /></el-icon>
             </a>
           </div>
           <div class="footer-right">
-            <el-button type="text" size="small" > 
-            <a href="https://github.com/e-zz/MixTex-OCR-WebRebuild" target="_blank" >
-              {{ $t('footer.projectLink') }}
-            </a>
+            <el-button type="text" size="small">
+              <a
+                href="https://github.com/e-zz/MixTex-OCR-WebRebuild"
+                target="_blank"
+              >
+                {{ $t("footer.projectLink") }}
+              </a>
             </el-button>
             <el-button type="text" size="small" @click="showAbout">
-              {{ $t('footer.about') }} 
+              {{ $t("footer.about") }}
             </el-button>
           </div>
         </div>
@@ -239,373 +285,378 @@
 </template>
 
 <script setup>
-import { ref, computed, provide, watchEffect, watch, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed, provide, watchEffect, watch, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Upload,
   Document,
   CopyDocument,
-  Close,
   Download,
   Link,
-  Edit,  // Add these new icons
+  Edit, // Add these new icons
   Plus,
-  Delete
   // Remove Refresh since we're not using it anymore
-} from '@element-plus/icons-vue'
-import ClipboardUpload from './components/ClipboardUpload.vue'
-import GlobalLoading from './components/GlobalLoading.vue'
-import AboutPopup from './components/AboutPopup.vue'
+} from "@element-plus/icons-vue";
+import ClipboardUpload from "./components/ClipboardUpload.vue";
+import GlobalLoading from "./components/GlobalLoading.vue";
+import AboutPopup from "./components/AboutPopup.vue";
 
 // 响应式数据
-const currentResult = ref(null)
-const clipboardUploadRef = ref(null)
-const globalLoadingRef = ref(null)
-const aboutPopupRef = ref(null)
+const currentResult = ref(null);
+const clipboardUploadRef = ref(null);
+const globalLoadingRef = ref(null);
+const aboutPopupRef = ref(null);
 
 // Format conversion related state
-const selectedFormat = ref('latex')
-const customFormats = ref([])
-const originalLatex = ref('') // Store the original LaTeX for conversions
-const isConverting = ref(false)
-const editingFormatId = ref(null)
+const selectedFormat = ref("latex");
+const customFormats = ref([]);
+const originalLatex = ref(""); // Store the original LaTeX for conversions
+const isConverting = ref(false);
+const editingFormatId = ref(null);
 
 // 计算属性
-const hasCurrentImage = computed(() => currentResult.value !== null)
+const hasCurrentImage = computed(() => currentResult.value !== null);
 
 // Add new state for download button
-const isDownloading = ref(false)
+const isDownloading = ref(false);
 
 // Model download and setup function
 const downloadAndSetupModel = async () => {
   try {
     // Confirm with user before proceeding
     await ElMessageBox.confirm(
-      t('download.confirmMessage'),
-      t('download.title'),
+      t("download.confirmMessage"),
+      t("download.title"),
       {
-        confirmButtonText: t('download.confirmButton'),
-        cancelButtonText: t('download.cancelButton'),
-        type: 'info'
+        confirmButtonText: t("download.confirmButton"),
+        cancelButtonText: t("download.cancelButton"),
+        type: "info",
       }
-    )
+    );
 
-    isDownloading.value = true
-    showGlobalLoading(t('download.downloading'))
+    isDownloading.value = true;
+    showGlobalLoading(t("download.downloading"));
 
     // Call backend endpoint to handle download, unzip and setup
-    const response = await fetch('http://localhost:8000/download_model', {
-      method: 'POST'
-    })
+    const response = await fetch("http://localhost:8000/download_model", {
+      method: "POST",
+    });
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || t('download.downloadFailed'))
+      const errorData = await response.json();
+      throw new Error(errorData.detail || t("download.downloadFailed"));
     }
 
-    const result = await response.json()
-    hideGlobalLoading()
-    isDownloading.value = false
+    const result = await response.json();
+    hideGlobalLoading();
+    isDownloading.value = false;
 
-    ElMessage.success(t('download.downloadSuccess'))
+    ElMessage.success(t("download.downloadSuccess"));
   } catch (error) {
-    hideGlobalLoading()
-    isDownloading.value = false
+    hideGlobalLoading();
+    isDownloading.value = false;
 
     // Don't show error if user cancelled
-    if (error.toString().includes('cancel')) return
+    if (error.toString().includes("cancel")) return;
 
-    ElMessage.error(`${t('download.downloadError')}: ${error.message || error}`)
+    ElMessage.error(
+      `${t("download.downloadError")}: ${error.message || error}`
+    );
   }
-}
+};
 
 // Add i18n
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 // Initialize from localStorage (runs once)
-const storedLang = localStorage.getItem('language')
+const storedLang = localStorage.getItem("language");
 if (storedLang && storedLang !== locale.value) {
-  locale.value = storedLang
+  locale.value = storedLang;
 }
 
-const currentLanguage = ref(locale.value)
-const languageSwitch = ref(currentLanguage.value === 'zh')
+const currentLanguage = ref(locale.value);
+const languageSwitch = ref(currentLanguage.value === "zh");
 
 // Keep switch in sync if locale changes elsewhere
 watchEffect(() => {
-  languageSwitch.value = locale.value === 'zh'
-})
+  languageSwitch.value = locale.value === "zh";
+});
 
 watchEffect(() => {
-  const title = t('app.title')
-  document.title = (title && title !== 'app.title')
-    ? title
-    : 'MixTeX OCR'
-})
+  const title = t("app.title");
+  document.title = title && title !== "app.title" ? title : "MixTeX OCR";
+});
 
 // Language change handler
 const changeLanguage = (lang) => {
-  locale.value = lang
-  currentLanguage.value = lang
-  localStorage.setItem('language', lang)
-  ElMessage.success(t('messages.languageChanged'))
-}
+  locale.value = lang;
+  currentLanguage.value = lang;
+  localStorage.setItem("language", lang);
+  ElMessage.success(t("messages.languageChanged"));
+};
 
 // Handle switch change
 const onLanguageSwitchChange = (value) => {
-  const lang = value ? 'zh' : 'en'
-  changeLanguage(lang)
-}
-
-
+  const lang = value ? "zh" : "en";
+  changeLanguage(lang);
+};
 
 // 方法
 const copyToClipboard = async (text) => {
   try {
-    await navigator.clipboard.writeText(text)
-    ElMessage.success(t('messages.copiedToClipboard'))
+    await navigator.clipboard.writeText(text);
+    ElMessage.success(t("messages.copiedToClipboard"));
   } catch (error) {
     // 降级方案
-    const textArea = document.createElement('textarea')
-    textArea.value = text
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
-    ElMessage.success(t('messages.copiedToClipboard'))
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+    ElMessage.success(t("messages.copiedToClipboard"));
   }
-}
+};
 
 const submitFeedback = async (result, feedback) => {
   try {
-    const formData = new FormData()
-    formData.append('latex_text', result.latex)
-    formData.append('feedback', feedback)
+    const formData = new FormData();
+    formData.append("latex_text", result.latex);
+    formData.append("feedback", feedback);
     if (result.imageUrl) {
-      formData.append('image_data', result.imageUrl)
+      formData.append("image_data", result.imageUrl);
     }
 
-    const response = await fetch('http://localhost:8000/feedback', {
-      method: 'POST',
-      body: formData
-    })
+    const response = await fetch("http://localhost:8000/feedback", {
+      method: "POST",
+      body: formData,
+    });
 
     if (response.ok) {
-      ElMessage.success(t('messages.feedbackSubmitted'))
+      ElMessage.success(t("messages.feedbackSubmitted"));
     } else {
-      ElMessage.error(t('messages.feedbackFailed'))
+      ElMessage.error(t("messages.feedbackFailed"));
     }
   } catch (error) {
-    ElMessage.error(t('messages.feedbackFailed'))
+    ElMessage.error(t("messages.feedbackFailed"));
   }
-}
+};
 
 const showAbout = () => {
   if (aboutPopupRef.value) {
-    aboutPopupRef.value.show()
+    aboutPopupRef.value.show();
   }
-}
-
+};
 
 // 重新识别
 const reRecognize = async () => {
   if (clipboardUploadRef.value) {
-    await clipboardUploadRef.value.reRecognize()
+    await clipboardUploadRef.value.reRecognize();
   }
-}
-
+};
 
 // Add a new custom format
 const addCustomFormat = () => {
-  const id = `custom-${Date.now()}`
+  const id = `custom-${Date.now()}`;
   customFormats.value.push({
     id,
     label: `Format ${customFormats.value.length + 1}`,
-    value: ''
-  })
-  
+    value: "",
+  });
+
   // Select the new format
-  selectedFormat.value = id
-  editingFormatId.value = id
-}
+  selectedFormat.value = id;
+  editingFormatId.value = id;
+};
 
 // Update a custom format
 const updateCustomFormat = (format) => {
   // Ensure we have valid values
   if (!format.label.trim()) {
-    format.label = `Format ${customFormats.value.findIndex(f => f.id === format.id) + 1}`
+    format.label = `Format ${
+      customFormats.value.findIndex((f) => f.id === format.id) + 1
+    }`;
   }
-  
+
   if (!format.value.trim()) {
-    format.value = format.label.toLowerCase()
+    format.value = format.label.toLowerCase();
   }
-  
+
   // If this is the currently selected format, trigger conversion
   if (selectedFormat.value === format.id && originalLatex.value) {
-    convertFormat()
+    convertFormat();
   }
-  
+
   // Save formats to localStorage
-  saveCustomFormats()
-  
+  saveCustomFormats();
+
   // Close popover
-  editingFormatId.value = null
-}
+  editingFormatId.value = null;
+};
 
 // Remove a custom format
 const removeCustomFormat = (id) => {
-  const index = customFormats.value.findIndex(f => f.id === id)
+  const index = customFormats.value.findIndex((f) => f.id === id);
   if (index !== -1) {
-    customFormats.value.splice(index, 1)
-    
+    customFormats.value.splice(index, 1);
+
     // If this was the selected format, switch back to LaTeX
     if (selectedFormat.value === id) {
-      selectedFormat.value = 'latex'
+      selectedFormat.value = "latex";
     }
-    
+
     // Save formats to localStorage
-    saveCustomFormats()
+    saveCustomFormats();
   }
-}
+};
 
 // Save custom formats to localStorage
 const saveCustomFormats = () => {
-  localStorage.setItem('customFormats', JSON.stringify(customFormats.value))
-}
+  localStorage.setItem("customFormats", JSON.stringify(customFormats.value));
+};
 
 // Load custom formats from localStorage
 const loadCustomFormats = () => {
-  const saved = localStorage.getItem('customFormats')
+  const saved = localStorage.getItem("customFormats");
   if (saved) {
     try {
-      customFormats.value = JSON.parse(saved)
+      customFormats.value = JSON.parse(saved);
     } catch (e) {
-      console.error('Failed to parse custom formats:', e)
+      console.error("Failed to parse custom formats:", e);
     }
   }
-}
+};
 
 // Call this on component mount
-loadCustomFormats()
+loadCustomFormats();
 
 // Modify the format conversion function to work with custom formats
 const convertFormat = async () => {
   if (!currentResult.value || !originalLatex.value || isConverting.value) {
-    return
+    return;
   }
 
   // Don't convert if already in LaTeX format
-  if (selectedFormat.value === 'latex') {
-    currentResult.value.latex = originalLatex.value
-    return
+  if (selectedFormat.value === "latex") {
+    currentResult.value.latex = originalLatex.value;
+    return;
   }
 
   try {
-    isConverting.value = true
-    showGlobalLoading(t('messages.converting'))
+    isConverting.value = true;
+    showGlobalLoading(t("messages.converting"));
 
     // Get the format value
-    let formatName
-    if (selectedFormat.value.startsWith('custom-')) {
+    let formatName;
+    if (selectedFormat.value.startsWith("custom-")) {
       // Find the custom format
-      const format = customFormats.value.find(f => f.id === selectedFormat.value)
-      formatName = format ? format.value.trim() : 'custom'
+      const format = customFormats.value.find(
+        (f) => f.id === selectedFormat.value
+      );
+      formatName = format ? format.value.trim() : "custom";
     } else {
-      formatName = selectedFormat.value
+      formatName = selectedFormat.value;
     }
 
-    const formData = new FormData()
-    formData.append('latex_text', originalLatex.value)
-    formData.append('target_format', formatName)
+    const formData = new FormData();
+    formData.append("latex_text", originalLatex.value);
+    formData.append("target_format", formatName);
 
-    const response = await fetch('http://localhost:8000/convert_format', {
-      method: 'POST',
-      body: formData
-    })
+    const response = await fetch("http://localhost:8000/convert_format", {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || t('messages.conversionFailed'))
+      const errorData = await response.json();
+      throw new Error(errorData.detail || t("messages.conversionFailed"));
     }
 
-    const result = await response.json()
-    
+    const result = await response.json();
+
     // Update the displayed text with the converted result
-    currentResult.value.latex = result.converted_text
-    
-    hideGlobalLoading()
-    ElMessage.success(t('messages.conversionSuccess', { format: formatName }))
+    currentResult.value.latex = result.converted_text;
+
+    hideGlobalLoading();
+    ElMessage.success(t("messages.conversionSuccess", { format: formatName }));
   } catch (error) {
-    hideGlobalLoading()
-    ElMessage.error(`${t('messages.conversionError')}: ${error.message || error}`)
-    
+    hideGlobalLoading();
+    ElMessage.error(
+      `${t("messages.conversionError")}: ${error.message || error}`
+    );
+
     // Revert to original format on error
-    selectedFormat.value = 'latex'
-    currentResult.value.latex = originalLatex.value
+    selectedFormat.value = "latex";
+    currentResult.value.latex = originalLatex.value;
   } finally {
-    isConverting.value = false
+    isConverting.value = false;
   }
-}
+};
 
 // Update the watch for format changes
 watch(selectedFormat, async (newFormat) => {
   // Only convert if we have content
-  if (currentResult.value?.latex && !isConverting.value && originalLatex.value) {
-    await convertFormat()
+  if (
+    currentResult.value?.latex &&
+    !isConverting.value &&
+    originalLatex.value
+  ) {
+    await convertFormat();
   }
-})
+});
 
 // Override the addResult function to store original LaTeX without resetting format
 const addResult = (imageUrl, latex) => {
-  const now = new Date()
-  const timeStr = now.toLocaleTimeString()
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString();
 
   // Store original LaTeX but don't reset format
-  originalLatex.value = latex
+  originalLatex.value = latex;
 
   // Create initial result object with the original LaTeX
   const newResult = {
     imageUrl,
     latex,
-    time: timeStr
-  }
+    time: timeStr,
+  };
 
   // Set the current result
-  currentResult.value = newResult
+  currentResult.value = newResult;
 
   // If format is not LaTeX, convert immediately to maintain the selected format
-  if (selectedFormat.value !== 'latex' && !isConverting.value) {
+  if (selectedFormat.value !== "latex" && !isConverting.value) {
     // Use nextTick to ensure the UI updates first
     nextTick(() => {
-      convertFormat()
-    })
+      convertFormat();
+    });
   }
-}
+};
 
 // 显示全局加载状态
 const showGlobalLoading = (message = null) => {
   if (globalLoadingRef.value) {
-    globalLoadingRef.value.show(message || t('messages.recognizing'))
+    globalLoadingRef.value.show(message || t("messages.recognizing"));
   }
-}
+};
 
 // 隐藏全局加载状态
 const hideGlobalLoading = () => {
   if (globalLoadingRef.value) {
-    globalLoadingRef.value.hide()
+    globalLoadingRef.value.hide();
   }
-}
+};
 
 // 提供给子组件
-provide('addResult', addResult)
-provide('showGlobalLoading', showGlobalLoading)
-provide('hideGlobalLoading', hideGlobalLoading)
+provide("addResult", addResult);
+provide("showGlobalLoading", showGlobalLoading);
+provide("hideGlobalLoading", hideGlobalLoading);
 </script>
 
 <style>
 #app {
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
@@ -800,7 +851,7 @@ provide('hideGlobalLoading', hideGlobalLoading)
 }
 
 .latex-input {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .result-actions {
@@ -846,14 +897,14 @@ provide('hideGlobalLoading', hideGlobalLoading)
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .format-selector {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
     margin-top: 5px;
   }
-  
+
   .format-selector .el-input {
     margin-left: 0 !important;
     width: 100% !important;
@@ -1009,7 +1060,7 @@ a.footer-link:hover {
 }
 
 .edit-format-btn:hover {
-  color: #409EFF !important;
+  color: #409eff !important;
 }
 
 .add-format-btn {
