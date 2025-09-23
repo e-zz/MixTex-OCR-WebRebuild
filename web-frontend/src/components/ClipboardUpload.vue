@@ -9,7 +9,11 @@
       @drop="handleDrop"
       :class="{ 'dragover': isDragOver }"
     >
-      <div class="clipboard-content">
+      <!-- 显示图片预览或上传提示 -->
+      <div v-if="imageUrl" class="image-preview">
+        <img :src="imageUrl" alt="Preview" class="preview-image" />
+      </div>
+      <div v-else class="clipboard-content">
         <el-icon class="clipboard-icon"><DocumentCopy /></el-icon>
         <div class="clipboard-text">
           <h3>{{ $t('clipboard.title') }}</h3>
@@ -19,18 +23,7 @@
       </div>
     </div>
 
-    <!-- 格式设置 -->
-    <div class="format-settings">
-      <el-divider>{{ $t('clipboard.formatSettings') }}</el-divider>
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-checkbox v-model="useDollars">{{ $t('clipboard.useDollars') }}</el-checkbox>
-        </el-col>
-        <el-col :span="12">
-          <el-checkbox v-model="convertAlign">{{ $t('clipboard.convertAlign') }}</el-checkbox>
-        </el-col>
-      </el-row>
-    </div>
+    <!-- Format settings removed, now in App.vue -->
 
     <!-- 隐藏的加载指示器 -->
     <div v-if="isProcessing" style="display: none;">
@@ -56,8 +49,10 @@ const imageUrl = ref('')
 const isProcessing = ref(false)
 const isDragOver = ref(false)
 const loadingProgress = ref(0)
-const useDollars = ref(false)
-const convertAlign = ref(false)
+
+// Format settings moved to parent component
+const useDollars = inject('useDollars', ref(false))
+const convertAlign = inject('convertAlign', ref(false))
 const currentFile = ref(null)
 
 // API配置
@@ -71,16 +66,7 @@ const hideGlobalLoading = inject('hideGlobalLoading', null)
 // 处理粘贴事件
 const handlePaste = async (event) => {
   event.preventDefault()
-  const items = event.clipboardData.items
-  
-  for (let item of items) {
-    if (item.type.indexOf('image') !== -1) {
-      const file = item.getAsFile()
-      if (file) {
-        await processImage(file)
-      }
-    }
-  }
+  await handleLocalPaste(event)
 }
 
 // 处理拖拽事件
@@ -220,38 +206,38 @@ const reRecognize = async () => {
 
 // 清除图片函数已删除
 
-// 全局粘贴监听
-const handleGlobalPaste = async (event) => {
-  // 检查是否在剪贴板区域内
-  const clipboardArea = document.querySelector('.clipboard-area')
-  if (clipboardArea && clipboardArea.contains(event.target)) {
-    return // 让局部处理函数处理
+// Handle a file pasted from anywhere (exported for parent component)
+const handlePastedFile = async (file) => {
+  if (file && file.type.startsWith('image/')) {
+    await processImage(file);
   }
-  
-  // 全局粘贴处理
-  const items = event.clipboardData.items
+}
+
+// 局部粘贴监听 - 仅处理在组件内的粘贴
+const handleLocalPaste = async (event) => {
+  const items = event.clipboardData.items;
   for (let item of items) {
     if (item.type.indexOf('image') !== -1) {
-      const file = item.getAsFile()
+      const file = item.getAsFile();
       if (file) {
-        await processImage(file)
+        await processImage(file);
       }
     }
   }
 }
 
-// 生命周期
-onMounted(() => {
-  document.addEventListener('paste', handleGlobalPaste)
-})
+// 生命周期 - 不再添加全局粘贴监听，由父组件处理
+// 清除当前图片
+const clearImage = () => {
+  imageUrl.value = '';
+  currentFile.value = null;
+}
 
-onUnmounted(() => {
-  document.removeEventListener('paste', handleGlobalPaste)
-})
-
-// 暴露重新识别方法给父组件
+// 暴露方法给父组件
 defineExpose({
-  reRecognize
+  reRecognize,
+  handlePastedFile,
+  clearImage
 })
 </script>
 
@@ -260,18 +246,18 @@ defineExpose({
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .format-settings {
-  margin-top: 15px;
+  margin-top: 10px;
   margin-bottom: 5px;
 }
 
 .clipboard-area {
   border: 2px dashed #dcdfe6;
   border-radius: 12px;
-  padding: 30px;
+  padding: 20px;
   text-align: center;
   background-color: #fafafa;
   transition: all 0.3s ease;
@@ -280,6 +266,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 120px; /* Ensure minimum height even when image is displayed */
 }
 
 .clipboard-area:hover {
@@ -318,7 +305,20 @@ defineExpose({
   font-size: 13px;
 }
 
-/* 图片预览和加载状态相关样式已删除 */
+/* 图片预览样式 */
+.image-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
 
 /* 响应式设计 */
 @media (max-width: 768px) {

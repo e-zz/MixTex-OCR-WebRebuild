@@ -50,6 +50,8 @@ export default {
     conversionSuccess: 'Converted to {format}',
     conversionFailed: 'Failed to convert format',
     conversionError: 'Conversion error',
+    previewAndUpload: 'Image Preview & Upload',
+    texFormat: 'TeX Format',
   },
   formats: {
     formatLabel: 'Output as',
@@ -62,7 +64,9 @@ export default {
     perfect: 'Perfect',
     mistake: 'Mistake',
     save: 'Save',
-    remove: 'Remove'
+    uploadNewCtrlV: 'Upload New Image (or Ctrl+V)',
+    uploadNewShort: 'New Image',
+    applySettings: 'Apply Settings'
   },
   dialogs: {
     confirmClose: 'Are you sure you want to close the application?',

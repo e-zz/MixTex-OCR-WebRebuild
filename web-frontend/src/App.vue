@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" @paste="handleGlobalPaste">
     <!-- 全局加载状态 -->
     <GlobalLoading ref="globalLoadingRef" />
 
@@ -43,7 +43,7 @@
       <!-- 主要内容区域 -->
       <el-main class="main-content">
         <el-row :gutter="20" class="content-row">
-          <!-- 左侧功能区域 -->
+          <!-- 左侧区域 - 上传和图片展示 -->
           <el-col
             :xs="24"
             :sm="24"
@@ -55,21 +55,37 @@
             <el-card class="function-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon>
-                    <Upload />
-                  </el-icon>
-                  <span>{{ $t("clipboard.title") }}</span>
+                  <div class="header-left-side">
+                    <el-icon>
+                      <Upload />
+                    </el-icon>
+                    <span>{{ $t("clipboard.title") }}</span>
+                  </div>
+                  <div v-if="hasCurrentImage" class="header-right-side">
+                    <el-button
+                      type="primary"
+                      size="small"
+                      plain
+                      @click="clearCurrentImage"
+                    >
+                      <el-icon><Upload /></el-icon>
+                      {{ $t("buttons.uploadNewShort") }}
+                    </el-button>
+                  </div>
                 </div>
               </template>
 
-              <!-- 剪贴板粘贴 -->
+              <!-- 剪贴板上传组件始终显示，但在内部处理图片显示 -->
               <div class="function-content">
-                <ClipboardUpload ref="clipboardUploadRef" />
+                <!-- 始终显示剪贴板上传组件 -->
+                <div class="clipboard-upload-wrapper">
+                  <ClipboardUpload ref="clipboardUploadRef" />
+                </div>
               </div>
             </el-card>
           </el-col>
 
-          <!-- 右侧结果显示区域 -->
+          <!-- 右侧区域 - 设置和识别结果 -->
           <el-col
             :xs="24"
             :sm="24"
@@ -81,10 +97,53 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon>
-                    <Document />
-                  </el-icon>
-                  <span>{{ $t("messages.recognitionResult") }}</span>
+                  <div class="header-left-side">
+                    <el-icon>
+                      <Document />
+                    </el-icon>
+                    <span>{{ $t("messages.recognitionResult") }}</span>
+                  </div>
+                  <div class="header-right-side">
+                    <el-dropdown trigger="click">
+                      <el-button
+                        size="small"
+                        :disabled="!hasCurrentImage"
+                      >
+                        <el-icon style="margin-right: 5px;"><Setting /></el-icon>
+                        {{ $t("messages.texFormat") }}
+                        <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                      </el-button>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item class="format-dropdown-item">
+                            <div class="format-settings-dropdown">
+                              <h4>{{ $t("clipboard.formatSettings") }}</h4>
+                              <div class="format-checkbox-row">
+                                <el-checkbox v-model="useDollars" :disabled="isConverting">
+                                  {{ $t("clipboard.useDollars") }}
+                                </el-checkbox>
+                              </div>
+                              <div class="format-checkbox-row">
+                                <el-checkbox v-model="convertAlign" :disabled="isConverting">
+                                  {{ $t("clipboard.convertAlign") }}
+                                </el-checkbox>
+                              </div>
+                              <div class="format-apply-button" style="margin-top: 10px; text-align: center;">
+                                <el-button 
+                                  type="primary" 
+                                  size="small" 
+                                  @click="reRecognize" 
+                                  :disabled="!hasCurrentImage || isConverting"
+                                >
+                                  {{ $t("buttons.applySettings") }}
+                                </el-button>
+                              </div>
+                            </div>
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
+                  </div>
                 </div>
               </template>
 
@@ -99,16 +158,6 @@
                 </div>
 
                 <div v-else class="current-result">
-                  <!-- 图片显示 -->
-                  <div class="result-image-section">
-                    <h4>{{ $t("messages.recognizeImage") }}</h4>
-                    <img
-                      :src="currentResult.imageUrl"
-                      alt="{{ $t('messages.recognizeImage') }}"
-                      class="result-image"
-                    />
-                  </div>
-
                   <!-- 结果显示 -->
 
                   <div class="result-latex-section">
@@ -202,8 +251,7 @@
                       <el-input
                         v-model="currentResult.latex"
                         type="textarea"
-                        :rows="6"
-                        readonly
+                        :rows="15"
                         class="latex-input"
                         :loading="isConverting"
                       />
@@ -294,9 +342,10 @@ import {
   CopyDocument,
   Download,
   Link,
-  Edit, // Add these new icons
+  Edit,
   Plus,
-  // Remove Refresh since we're not using it anymore
+  Setting,
+  ArrowDown
 } from "@element-plus/icons-vue";
 import ClipboardUpload from "./components/ClipboardUpload.vue";
 import GlobalLoading from "./components/GlobalLoading.vue";
@@ -314,6 +363,10 @@ const customFormats = ref([]);
 const originalLatex = ref(""); // Store the original LaTeX for conversions
 const isConverting = ref(false);
 const editingFormatId = ref(null);
+
+// Format settings moved from ClipboardUpload
+const useDollars = ref(false);
+const convertAlign = ref(false);
 
 // 计算属性
 const hasCurrentImage = computed(() => currentResult.value !== null);
@@ -456,6 +509,41 @@ const reRecognize = async () => {
   }
 };
 
+// 清除当前图片
+const clearCurrentImage = () => {
+  currentResult.value = null;
+  if (clipboardUploadRef.value) {
+    clipboardUploadRef.value.clearImage();
+  }
+};
+
+// Global paste event handler
+const handleGlobalPaste = (event) => {
+  // Only process if it's an image
+  const items = event.clipboardData?.items;
+  if (!items) return;
+
+  for (let item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile();
+      if (file) {
+        // Process the pasted file directly
+        handlePastedImage(file);
+        return; // Stop after finding an image
+      }
+    }
+  }
+};
+
+// Handle pasted image
+const handlePastedImage = (file) => {
+  // Only if we have the clipboard component reference
+  if (clipboardUploadRef.value && file) {
+    // Always process directly - the component will now handle displaying the image
+    clipboardUploadRef.value.handlePastedFile(file);
+  }
+};
+
 // Add a new custom format
 const addCustomFormat = () => {
   const id = `custom-${Date.now()}`;
@@ -533,13 +621,13 @@ loadCustomFormats();
 
 // Modify the format conversion function to work with custom formats
 const convertFormat = async () => {
-  if (!currentResult.value || !originalLatex.value || isConverting.value) {
+  if (!currentResult.value || !currentResult.value.latex || isConverting.value) {
     return;
   }
 
   // Don't convert if already in LaTeX format
   if (selectedFormat.value === "latex") {
-    currentResult.value.latex = originalLatex.value;
+    // No need to reset to original LaTeX since we're using whatever the user has
     return;
   }
 
@@ -560,7 +648,8 @@ const convertFormat = async () => {
     }
 
     const formData = new FormData();
-    formData.append("latex_text", originalLatex.value);
+    // Always use the current content - this automatically handles edited content
+    formData.append("latex_text", currentResult.value.latex);
     formData.append("target_format", formatName);
 
     const response = await fetch("http://localhost:8000/convert_format", {
@@ -586,9 +675,8 @@ const convertFormat = async () => {
       `${t("messages.conversionError")}: ${error.message || error}`
     );
 
-    // Revert to original format on error
+    // Revert to original format on error but keep user's edits
     selectedFormat.value = "latex";
-    currentResult.value.latex = originalLatex.value;
   } finally {
     isConverting.value = false;
   }
@@ -606,12 +694,14 @@ watch(selectedFormat, async (newFormat) => {
   }
 });
 
+// Removed the watch for format settings changes to prevent automatic re-recognition
+
 // Override the addResult function to store original LaTeX without resetting format
 const addResult = (imageUrl, latex) => {
   const now = new Date();
   const timeStr = now.toLocaleTimeString();
 
-  // Store original LaTeX but don't reset format
+  // Store original LaTeX (still useful for reference)
   originalLatex.value = latex;
 
   // Create initial result object with the original LaTeX
@@ -651,6 +741,12 @@ const hideGlobalLoading = () => {
 provide("addResult", addResult);
 provide("showGlobalLoading", showGlobalLoading);
 provide("hideGlobalLoading", hideGlobalLoading);
+// Provide format settings
+provide("useDollars", useDollars);
+provide("convertAlign", convertAlign);
+
+// We'll implement paste handling without the lifecycle hooks
+// Instead, we'll add a directive to listen for paste events on the app root element
 </script>
 
 <style>
@@ -769,10 +865,22 @@ provide("hideGlobalLoading", hideGlobalLoading);
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   font-size: 16px;
   font-weight: 600;
   color: #333;
+  width: 100%;
+}
+
+.header-left-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-right-side {
+  display: flex;
+  align-items: center;
 }
 
 .function-content {
@@ -783,6 +891,33 @@ provide("hideGlobalLoading", hideGlobalLoading);
 .result-content {
   height: calc(100% - 60px);
   overflow-y: auto;
+}
+
+.format-dropdown-item {
+  padding: 0;
+}
+
+.format-settings-dropdown {
+  padding: 10px 15px;
+  min-width: 220px;
+}
+
+.format-settings-dropdown h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.format-checkbox-row {
+  margin-bottom: 10px;
+}
+
+.format-checkbox-row:last-child {
+  margin-bottom: 0;
 }
 
 .empty-state {
@@ -812,35 +947,59 @@ provide("hideGlobalLoading", hideGlobalLoading);
   height: 100%;
 }
 
-.result-image-section {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 5px;
-}
-
-.result-image-section h4 {
-  margin: 0;
-  color: #333;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.result-image {
-  max-width: 100%;
-  max-height: 250px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  object-fit: contain;
-  align-self: center;
-}
+/* Removed result-image-section styles that have been moved */
 
 .result-latex-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+/* New styles for the left panel image display */
+.image-preview-section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.image-preview-section h4 {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: calc(100% - 70px);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+  align-self: center;
+}
+
+.new-image-action {
+  margin-top: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+/* Adjust clipboard upload component */
+.clipboard-upload-wrapper {
+  height: 100%;
+}
+
+.function-content {
+  height: calc(100% - 60px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .result-latex-section h4 {
@@ -963,6 +1122,21 @@ provide("hideGlobalLoading", hideGlobalLoading);
 
   .content-row {
     height: auto;
+  }
+  
+  /* Adjust clipboard wrapper height for smaller screens */
+  .clipboard-upload-wrapper.with-image {
+    height: auto;
+    min-height: 200px;
+  }
+  
+  /* Reduce image preview height on smaller screens */
+  .image-preview-section {
+    max-height: 300px;
+  }
+  
+  .preview-image {
+    max-height: 200px;
   }
 }
 

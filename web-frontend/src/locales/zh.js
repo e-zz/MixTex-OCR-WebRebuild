@@ -50,6 +50,8 @@ export default {
     conversionSuccess: '成功转换为 {format}',
     conversionFailed: '转换格式失败',
     conversionError: '转换错误',
+    previewAndUpload: '图片预览与上传',
+    texFormat: 'TeX 格式',
   },
   formats: {
     formatLabel: '输出为',
@@ -62,7 +64,9 @@ export default {
     perfect: "完美",
     mistake: "失误",
     save: "保存",
-    remove: "移除"
+    uploadNewCtrlV: "上传新图片 (或 Ctrl+V)",
+    uploadNewShort: "新图片",
+    applySettings: "应用设置"
   },
   dialogs: {
     confirmClose: '确定要关闭应用吗？',
